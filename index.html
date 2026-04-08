@@ -145,7 +145,7 @@
             <span id="st-time">12:00</span>
             <div class="battery-section" onclick="toggleCC(true)">
                 <span id="battery-level">--%</span>
-                <span id="battery-icon"></span>
+                <span id="battery-icon">🔋</span>
             </div>
         </div>
 
@@ -164,7 +164,7 @@
         <div class="lockscreen" id="lockView">
             <div class="lock-time" id="clock">12:00</div>
             <div style="margin-top: 5px; opacity: 0.7; font-size: 14px;">Hold Home Bar to Unlock</div>
-            <div class="fingerprint-scanner" id="fp-icon" onclick="unlockByFingerprint()"></div>
+            <div class="fingerprint-scanner" id="fp-icon" onclick="unlockByFingerprint()">☝️</div>
         </div>
 
         <div class="pin-pad" id="pinPad">
@@ -183,11 +183,11 @@
 
         <div class="drag-btn icon-normal-settings" id="settingsBtn" 
              onmousedown="setupDrag(event, this, 'settings')" 
-             ontouchstart="setupDrag(event, this, 'settings')"></div>
+             ontouchstart="setupDrag(event, this, 'settings')">⚙️</div>
              
         <div class="drag-btn icon-normal-cc" id="ccIconBtn" 
              onmousedown="setupDrag(event, this, 'cc')" 
-             ontouchstart="setupDrag(event, this, 'cc')"></div>
+             ontouchstart="setupDrag(event, this, 'cc')">🛠️</div>
 
         <input type="file" id="file-input" hidden accept="image/*" onchange="changeWallpaper(event)">
 
@@ -255,20 +255,18 @@
             }
         }
 
-        // Standard unlock logic (checks PIN)
         function unlockPhone() {
             if(activePin) document.getElementById('pinPad').style.display = 'flex';
             else {
-                playSfx(soundUnlock);
+                if(!phone.classList.contains('is-unlocked')) playSfx(soundUnlock);
                 phone.classList.add('is-unlocked');
             }
         }
 
-        // Bypasses PIN specifically for fingerprint
         function unlockByFingerprint() {
             playSfx(soundUnlock);
             phone.classList.add('is-unlocked');
-            closePinPad(); // In case PIN pad was open
+            closePinPad();
         }
 
         function exitRecentsToApp() { phone.classList.remove('recents-view'); phone.classList.add('open'); }
