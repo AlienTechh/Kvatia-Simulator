@@ -80,13 +80,32 @@
         
         .home-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 5px; background: rgba(255,255,255,0.8); border-radius: 10px; z-index: 3500; cursor: pointer; }
 
-        /* Multitasking System */
+        /* MULTITASKING / RECENTS STYLES */
         .multitasking-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 80; display: none; }
         .recents-view .multitasking-overlay { display: block; }
-        .recents-view .app { transform: scale(0.65) translateY(-40px) !important; opacity: 1 !important; pointer-events: none !important; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
-        .recents-view .app-card-trigger { position: absolute; top: 10%; left: 15%; width: 70%; height: 70%; z-index: 110; display: none; cursor: pointer; }
+
+        /* Hide icons in multitasking */
+        .recents-view .drag-btn { opacity: 0 !important; pointer-events: none !important; }
+
+        .recents-view .app { 
+            transform: scale(0.65) translateY(-40px) !important; 
+            opacity: 1 !important; 
+            pointer-events: none !important; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5); 
+        }
+        
+        .app-card-trigger { position: absolute; top: 10%; left: 15%; width: 70%; height: 70%; z-index: 110; display: none; cursor: pointer; }
         .recents-view .app-card-trigger { display: block; }
+        
         .recents-view .wallpaper { transform: scale(0.9) !important; filter: blur(15px); }
+
+        #no-apps-msg { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            color: white; font-weight: 600; font-size: 18px; opacity: 0; pointer-events: none; z-index: 90; 
+            transition: opacity 0.3s; 
+        }
+        .recents-view #no-apps-msg { opacity: 0.7; }
+
         #closeAllBtn { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; color: white; display: none; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); z-index: 3600; }
         .recents-view #closeAllBtn { display: flex; }
 
@@ -105,6 +124,7 @@
         <div class="punch-hole"></div>
         
         <div class="multitasking-overlay" onclick="exitRecentsToHome()"></div>
+        <div id="no-apps-msg">No Open Apps</div>
 
         <div class="status-bar">
             <span id="st-time">12:00</span>
@@ -156,7 +176,7 @@
 
         <input type="file" id="file-input" hidden accept="image/*" onchange="changeWallpaper(event)">
 
-        <div class="app-card-trigger" onclick="exitRecentsToApp()"></div>
+        <div class="app-card-trigger" id="cardTrigger" onclick="exitRecentsToApp()"></div>
         <div class="app" id="settingsApp">
             <div id="p1" class="page">
                 <div class="header">Settings</div>
@@ -193,8 +213,18 @@
 
         function handleHomeStart() {
             homeTimer = setTimeout(() => {
-                if (isPowerOn && phone.classList.contains('is-unlocked') && phone.classList.contains('open') && !ccPanel.classList.contains('cc-open')) {
+                if (isPowerOn && phone.classList.contains('is-unlocked') && !ccPanel.classList.contains('cc-open')) {
                     phone.classList.add('recents-view');
+                    // Toggle message visibility
+                    const msg = document.getElementById('no-apps-msg');
+                    const trigger = document.getElementById('cardTrigger');
+                    if(!phone.classList.contains('open')) {
+                        msg.style.display = 'block';
+                        trigger.style.display = 'none';
+                    } else {
+                        msg.style.display = 'none';
+                        trigger.style.display = 'block';
+                    }
                 }
             }, 600);
         }
@@ -310,22 +340,4 @@
         function setSpd(t) { document.documentElement.style.setProperty('--spd', t); }
         function changeWallpaper(e) { 
             const r = new FileReader(); 
-            r.onload = (ev) => { wallpaper.style.backgroundImage = `url('${ev.target.result}')`; }; 
-            r.readAsDataURL(e.target.files[0]); 
-        }
-        function changeIconStyle(s) { 
-            document.querySelectorAll('.drag-btn').forEach(b => {
-                if(s === 'glassy') b.className = 'drag-btn icon-glassy';
-                else b.className = 'drag-btn ' + (b.id==='settingsBtn'?'icon-normal-settings':'icon-normal-cc');
-            });
-        }
-        function updateTime() { 
-            const now = new Date(); 
-            const t = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0'); 
-            document.getElementById('clock').innerText = t; 
-            document.getElementById('st-time').innerText = t; 
-        }
-        setInterval(updateTime, 1000); updateTime();
-    </script>
-</body>
-</html>
+            r.onload = (ev
