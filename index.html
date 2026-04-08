@@ -3,38 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <title>FakeOS 1.0 - Fixed UI</title>
+    <title>FakeOS 1.0 - Real Battery</title>
     <style>
         :root { --spd: 0.5s; --ios-spring: cubic-bezier(0.3, 1.2, 0.3, 1); --bright: 1; }
-
-        /* 1. REMOVED BLUE HIGHLIGHT & PREVENTED ZOOM */
+        
         body { 
-            margin: 0; 
-            height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            background: #0a0a0a; 
-            font-family: -apple-system, sans-serif; 
-            overflow: hidden; 
+            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; 
+            background: #0a0a0a; font-family: -apple-system, sans-serif; overflow: hidden; 
             user-select: none; 
-            
-            /* Removes the blue tap box */
+            /* Fix: Removes the blue flash on mobile click */
             -webkit-tap-highlight-color: transparent; 
-            
-            /* Disables double-tap to zoom and allows instant clicks */
+            /* Fix: Removes double-tap zoom delay */
             touch-action: manipulation; 
         }
         
         .phone { 
             width: 280px; height: 580px; background: #000; border: 12px solid #222; border-radius: 50px; 
             position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            /* Ensure the container also respects touch rules */
-            touch-action: none; 
         }
 
-        /* Rest of your existing styles below... */
         .brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 3800; opacity: calc(1 - var(--bright)); }
         .punch-hole { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; background: #000; border-radius: 50%; z-index: 3900; border: 1px solid #1a1a1a; }
         
@@ -49,7 +36,10 @@
         .cc-open { transform: translateY(0); }
         .cc-slider-box { width: 200px; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 20px; color: white; text-align: center; }
 
-        .screen-off { position: absolute; width: 100%; height: 100%; background: #000; z-index: 4000; transition: opacity 0.4s; cursor: pointer; }
+        /* Fix: Screen off was blocking everything. Now starts hidden. */
+        .screen-off { position: absolute; width: 100%; height: 100%; background: #000; z-index: 4000; transition: opacity 0.4s; cursor: pointer; opacity: 0; pointer-events: none; }
+        .screen-is-off { opacity: 1; pointer-events: auto; }
+
         .wallpaper { position: absolute; width: 100%; height: 100%; background: #1a3a5a url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover; transition: all 0.6s var(--ios-spring); z-index: 1; transform: scale(1.2); }
         .lockscreen { position: absolute; width: 100%; height: 100%; z-index: 500; display: flex; flex-direction: column; align-items: center; padding-top: 70px; color: white; background: rgba(0,0,0,0.1); transition: transform 0.6s var(--ios-spring), opacity 0.4s; }
         .lock-time { font-size: 58px; font-weight: 200; }
@@ -65,7 +55,9 @@
         .app { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f2f2f7; z-index: 100; transform: scale(0); opacity: 0; pointer-events: none; transition: transform var(--spd) var(--ios-spring), opacity 0.3s; display: flex; flex-direction: column; border-radius: 40px; }
         .header { padding: 60px 20px 10px; font-weight: 800; font-size: 26px; color: #000; }
         .item { padding: 15px 18px; font-size: 16px; border-bottom: 0.5px solid #e5e5ea; cursor: pointer; color: #000; display: flex; justify-content: space-between; background: #fff; }
-        .home-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 100px; height: 5px; background: white; border-radius: 10px; z-index: 3500; cursor: pointer; }
+        
+        /* Fix: Higher z-index for home bar so it can always be clicked */
+        .home-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 100px; height: 5px; background: white; border-radius: 10px; z-index: 4500; cursor: pointer; }
         
         .is-unlocked .wallpaper { transform: scale(1); }
         .is-unlocked .drag-btn { opacity: 1; transform: scale(1); }
@@ -75,5 +67,126 @@
     </style>
 </head>
 <body>
-    </body>
+
+    <div class="phone" id="phone" ondblclick="handleDoubleTap(event)">
+        <div class="brightness-overlay"></div>
+        <div class="punch-hole"></div>
+        <div class="status-bar">
+            <span id="st-time">12:00</span>
+            <div class="battery-section" onclick="toggleCC(true)">
+                <span id="battery-level">--%</span>
+                <span id="battery-icon">🔋</span>
+            </div>
+        </div>
+
+        <div class="control-center" id="ccPanel">
+            <div class="cc-slider-box">
+                <div style="font-size:12px; margin-bottom:10px;">Brightness</div>
+                <input type="range" min="0.1" max="1" step="0.1" value="1" oninput="changeBrightness(this.value)" style="width:100%;">
+            </div>
+            <div style="color:white; margin-top:20px; cursor:pointer;" onclick="toggleCC(false)">Close ✕</div>
+        </div>
+
+        <div class="screen-off" id="blackOverlay"></div>
+        <div class="wallpaper" id="mainWallpaper"></div>
+        <div class="lockscreen" id="lockView"><div class="lock-time" id="clock">12:00</div><div style="margin-top: 10px; opacity: 0.8;">Swipe up (Click line) to unlock</div></div>
+
+        <div class="drag-btn icon-normal-settings" id="settingsBtn" onmousedown="setupDrag(event, this, 'settings')">⚙️</div>
+        <div class="drag-btn icon-normal-cc" id="ccIconBtn" onmousedown="setupDrag(event, this, 'cc')">🎛️</div>
+
+        <input type="file" id="file-input" hidden accept="image/*" onchange="changeWallpaper(event)">
+
+        <div class="app" id="settingsApp">
+            <div id="p1" class="page">
+                <div class="header">Settings</div>
+                <div class="item" onclick="showPage(4)">About Phone <span>›</span></div>
+                <div class="item" onclick="showPage(2)">Animation Speed <span>›</span></div>
+                <div class="item" onclick="showPage(5)">Icons <span>›</span></div>
+                <div class="item" onclick="showPage(3)">Wallpaper <span>›</span></div>
+            </div>
+            <div id="p2" class="page" style="display:none;"><div class="header">Speed</div><div class="item" onclick="setSpd('1.5s')">Slow</div><div class="item" onclick="setSpd('0.5s')">Normal</div><div class="item" onclick="setSpd('0.2s')">Fast</div><div class="item" onclick="setSpd('0s')">Off</div><div class="item" style="color:#007aff;" onclick="showPage(1)">Back</div></div>
+            <div id="p3" class="page" style="display:none;"><div class="header">Wallpaper</div><div class="item" onclick="document.getElementById('file-input').click()">Choose Wallpaper +</div><div class="item" style="color:#007aff;" onclick="showPage(1)">Back</div></div>
+            <div id="p4" class="page" style="display:none;"><div class="header">About Phone</div><div style="padding:40px; text-align:center;"><h1 style="color:#000;">FakeOS 1.0</h1><p style="color:#666;">POCO X6 Pro</p></div><div class="item" style="color:#007aff;" onclick="showPage(1)">Back</div></div>
+            <div id="p5" class="page" style="display:none;"><div class="header">Icons</div><div class="item" onclick="changeIconStyle('glassy')">Glassy</div><div class="item" onclick="changeIconStyle('normal')">Normal</div><div class="item" style="color:#007aff;" onclick="showPage(1)">Back</div></div>
+        </div>
+
+        <div class="home-bar" onclick="handleHomeBar()"></div>
+    </div>
+
+    <script>
+        const phone = document.getElementById('phone'), blackOverlay = document.getElementById('blackOverlay'), wallpaper = document.getElementById('mainWallpaper');
+        let isPowerOn = true, isDragging = false; // Set power on by default so it's not black
+
+        async function updateBattery() {
+            try {
+                const battery = await navigator.getBattery();
+                const level = Math.floor(battery.level * 100);
+                document.getElementById('battery-level').innerText = level + "%";
+                battery.addEventListener('levelchange', () => {
+                    document.getElementById('battery-level').innerText = Math.floor(battery.level * 100) + "%";
+                });
+            } catch (e) {
+                document.getElementById('battery-level').innerText = "100%";
+            }
+        }
+        updateBattery();
+
+        function handleDoubleTap(e) {
+            if (e.target.classList.contains('drag-btn')) return;
+            if (!isPowerOn) { 
+                blackOverlay.classList.remove('screen-is-off'); 
+                isPowerOn = true; 
+            } else if (!phone.classList.contains('open') && phone.classList.contains('is-unlocked')) { 
+                blackOverlay.classList.add('screen-is-off'); 
+                phone.classList.remove('is-unlocked'); 
+                isPowerOn = false; 
+                toggleCC(false); 
+            }
+        }
+
+        function handleHomeBar() { 
+            if (isPowerOn && !phone.classList.contains('is-unlocked')) {
+                phone.classList.add('is-unlocked'); 
+            } else { 
+                phone.classList.remove('open'); 
+                toggleCC(false); 
+            } 
+        }
+
+        function setupDrag(e, el, type) {
+            if (!phone.classList.contains('is-unlocked') || phone.classList.contains('open')) return;
+            isDragging = false;
+            let sX = e.clientX, sY = e.clientY, iX = el.offsetLeft, iY = el.offsetTop;
+            const move = (ev) => {
+                isDragging = true;
+                el.style.left = Math.max(10, Math.min(iX + (ev.clientX - sX), 210)) + 'px';
+                el.style.top = Math.max(40, Math.min(iY + (ev.clientY - sY), 480)) + 'px';
+                if(type === 'settings') document.getElementById('settingsApp').style.transformOrigin = (parseInt(el.style.left)+30)+"px "+(parseInt(el.style.top)+30)+"px";
+            };
+            const stop = () => { 
+                document.removeEventListener('mousemove', move); 
+                document.removeEventListener('mouseup', stop); 
+                if (!isDragging) { 
+                    if(type === 'settings') phone.classList.add('open'); 
+                    else toggleCC(true); 
+                } 
+            };
+            document.addEventListener('mousemove', move); 
+            document.addEventListener('mouseup', stop);
+        }
+
+        function changeBrightness(v) { document.documentElement.style.setProperty('--bright', v); }
+        function toggleCC(o) { if(isPowerOn && phone.classList.contains('is-unlocked')) document.getElementById('ccPanel').classList.toggle('cc-open', o); }
+        function showPage(n) { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); document.getElementById('p' + n).style.display = 'block'; }
+        function setSpd(t) { document.documentElement.style.setProperty('--spd', t); }
+        function changeWallpaper(e) { 
+            const r = new FileReader(); 
+            r.onload = (ev) => { wallpaper.style.backgroundImage = `url('${ev.target.result}')`; }; 
+            r.readAsDataURL(e.target.files[0]); 
+        }
+        function changeIconStyle(s) { document.querySelectorAll('.drag-btn').forEach(b => b.className = 'drag-btn ' + (s === 'glassy' ? 'icon-glassy' : (b.id==='settingsBtn'?'icon-normal-settings':'icon-normal-cc'))); }
+        function updateTime() { const now = new Date(); const t = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0'); document.getElementById('clock').innerText = t; document.getElementById('st-time').innerText = t; }
+        setInterval(updateTime, 1000); updateTime();
+    </script>
+</body>
 </html>
