@@ -74,26 +74,24 @@
         #settingsBtn { top: 110px; left: 30px; }
         #ccIconBtn { top: 110px; left: 110px; }
 
-        .app { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-app); z-index: 100; transform: scale(0); opacity: 0; pointer-events: none; transition: transform var(--spd) var(--ios-spring), opacity 0.3s; display: flex; flex-direction: column; border-radius: 44px; overflow: hidden; }
-        .header { padding: 50px 20px 15px; font-weight: 700; font-size: 32px; color: var(--text-main); background: var(--bg-app); }
-        .item { padding: 14px 20px; font-size: 17px; border-bottom: 0.5px solid var(--border-color); color: var(--text-main); display: flex; justify-content: space-between; background: var(--bg-item); align-items: center; }
-        
-        .home-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 5px; background: rgba(255,255,255,0.8); border-radius: 10px; z-index: 3500; cursor: pointer; }
-
-        /* MULTITASKING / RECENTS STYLES */
-        .multitasking-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 80; display: none; pointer-events: none; }
+        /* Multitasking System */
+        .multitasking-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 80; display: none; pointer-events: none; background: rgba(0,0,0,0.2); }
         .recents-view .multitasking-overlay { display: block; pointer-events: auto; }
 
         .recents-view .drag-btn { opacity: 0 !important; pointer-events: none !important; }
 
         .recents-view .app { 
-            transform: scale(0.65) translateY(-40px) !important; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.65) translateY(-20px) !important; 
             opacity: 1 !important; 
             pointer-events: none !important; 
             box-shadow: 0 30px 60px rgba(0,0,0,0.5); 
+            z-index: 105;
         }
         
-        .app-card-trigger { position: absolute; top: 10%; left: 15%; width: 70%; height: 70%; z-index: 110; display: none; cursor: pointer; }
+        .app-card-trigger { position: absolute; top: 15%; left: 15%; width: 70%; height: 70%; z-index: 110; display: none; cursor: pointer; }
         .recents-view .app-card-trigger { display: block; }
         
         .recents-view .wallpaper { transform: scale(0.9) !important; filter: blur(15px); }
@@ -105,8 +103,12 @@
         }
         .recents-view #no-apps-msg { opacity: 0.7; }
 
-        #closeAllBtn { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; color: white; display: none; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); z-index: 3600; }
-        .recents-view #closeAllBtn { display: flex; }
+        .app { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-app); z-index: 100; transform: scale(0); opacity: 0; pointer-events: none; transition: transform var(--spd) var(--ios-spring), opacity 0.3s; display: flex; flex-direction: column; border-radius: 44px; overflow: hidden; }
+        .header { padding: 50px 20px 15px; font-weight: 700; font-size: 32px; color: var(--text-main); background: var(--bg-app); display: flex; justify-content: space-between; align-items: center; }
+        .close-app-btn { font-size: 20px; cursor: pointer; color: var(--ios-blue); padding: 5px 10px; }
+        .item { padding: 14px 20px; font-size: 17px; border-bottom: 0.5px solid var(--border-color); color: var(--text-main); display: flex; justify-content: space-between; background: var(--bg-item); align-items: center; }
+        
+        .home-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 5px; background: rgba(255,255,255,0.8); border-radius: 10px; z-index: 3500; cursor: pointer; }
 
         .is-unlocked .wallpaper { transform: scale(1); }
         .is-unlocked .drag-btn { opacity: 1; transform: scale(1); }
@@ -176,28 +178,28 @@
 
         <div class="app-card-trigger" id="cardTrigger" onclick="exitRecentsToApp()"></div>
         <div class="app" id="settingsApp">
+            <div class="header">
+                Settings
+                <div class="close-app-btn" onclick="killCurrentApp(event)">✕</div>
+            </div>
             <div id="p1" class="page">
-                <div class="header">Settings</div>
                 <div class="item" onclick="showPage(6)">Screen Lock <span>›</span></div>
                 <div class="item" onclick="showPage(4)">About Phone <span>›</span></div>
                 <div class="item" onclick="showPage(2)">Animation Speed <span>›</span></div>
                 <div class="item" onclick="showPage(5)">Icons <span>›</span></div>
                 <div class="item" onclick="showPage(3)">Wallpaper <span>›</span></div>
             </div>
-            <div id="p2" class="page" style="display:none;"><div class="header">Speed</div><div class="item" onclick="setSpd('1.5s')">Slow</div><div class="item" onclick="setSpd('0.5s')">Normal</div><div class="item" onclick="setSpd('0.2s')">Fast</div><div class="item" onclick="setSpd('0s')">Off</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p3" class="page" style="display:none;"><div class="header">Wallpaper</div><div class="item" onclick="document.getElementById('file-input').click()">Choose Wallpaper +</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p4" class="page" style="display:none;"><div class="header">About</div><div style="padding:40px; text-align:center;"><h1 style="color:var(--text-main);">FakeOS 1.0</h1><p style="color:var(--text-main); opacity:0.6;">POCO X6 Pro Edition</p></div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p5" class="page" style="display:none;"><div class="header">Icons</div><div class="item" onclick="changeIconStyle('glassy')">Glassmorphism</div><div class="item" onclick="changeIconStyle('normal')">Classic</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
+            <div id="p2" class="page" style="display:none;"><div class="item" onclick="setSpd('1.5s')">Slow</div><div class="item" onclick="setSpd('0.5s')">Normal</div><div class="item" onclick="setSpd('0.2s')">Fast</div><div class="item" onclick="setSpd('0s')">Off</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
+            <div id="p3" class="page" style="display:none;"><div class="item" onclick="document.getElementById('file-input').click()">Choose Wallpaper +</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
+            <div id="p4" class="page" style="display:none;"><div style="padding:40px; text-align:center;"><h1 style="color:var(--text-main);">FakeOS 1.0</h1><p style="color:var(--text-main); opacity:0.6;">POCO X6 Pro Edition</p></div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
+            <div id="p5" class="page" style="display:none;"><div class="item" onclick="changeIconStyle('glassy')">Glassmorphism</div><div class="item" onclick="changeIconStyle('normal')">Classic</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
             <div id="p6" class="page" style="display:none;">
-                <div class="header">Security</div>
                 <div class="item">Fingerprint <div style="display:flex; gap: 12px;"><span onclick="setFingerprint(true)" style="color:#34c759; font-weight: bold;">ON</span><span onclick="setFingerprint(false)" style="color:#ff3b30; font-weight: bold;">OFF</span></div></div>
                 <div class="item" id="createPinBtn" onclick="createPin()">Create a PIN <span style="color:var(--ios-blue);">+</span></div>
                 <div class="item" id="turnOffPinBtn" style="display:none;" onclick="turnOffPin()">Turn off PIN <span style="color:#ff3b30;">✕</span></div>
                 <div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div>
             </div>
         </div>
-
-        <div id="closeAllBtn" onclick="killAllApps()">✕</div>
 
         <div class="home-bar" id="bottomBar" 
              onmousedown="handleHomeStart()" onmouseup="handleHomeEnd()"
@@ -210,19 +212,10 @@
         let homeTimer;
 
         function handleHomeStart() {
-            // Only allow multitasking if the phone is actually unlocked
             if (isPowerOn && phone.classList.contains('is-unlocked') && !ccPanel.classList.contains('cc-open')) {
                 homeTimer = setTimeout(() => {
                     phone.classList.add('recents-view');
-                    const msg = document.getElementById('no-apps-msg');
-                    const trigger = document.getElementById('cardTrigger');
-                    if(!phone.classList.contains('open')) {
-                        msg.style.display = 'block';
-                        trigger.style.display = 'none';
-                    } else {
-                        msg.style.display = 'none';
-                        trigger.style.display = 'block';
-                    }
+                    updateMultitaskingView();
                 }, 600);
             }
         }
@@ -234,17 +227,33 @@
             }
         }
 
-        function unlockPhone() {
-            if(activePin) {
-                document.getElementById('pinPad').style.display = 'flex';
+        function updateMultitaskingView() {
+            const msg = document.getElementById('no-apps-msg');
+            const trigger = document.getElementById('cardTrigger');
+            if(!phone.classList.contains('open')) {
+                msg.style.display = 'block';
+                trigger.style.display = 'none';
             } else {
-                phone.classList.add('is-unlocked');
+                msg.style.display = 'none';
+                trigger.style.display = 'block';
             }
+        }
+
+        function unlockPhone() {
+            if(activePin) document.getElementById('pinPad').style.display = 'flex';
+            else phone.classList.add('is-unlocked');
         }
 
         function exitRecentsToApp() { phone.classList.remove('recents-view'); }
         function exitRecentsToHome() { phone.classList.remove('recents-view'); phone.classList.remove('open'); }
-        function killAllApps() { phone.classList.remove('open'); phone.classList.remove('recents-view'); }
+        
+        // This function "kills" the app so it's gone from multitasking
+        function killCurrentApp(e) {
+            if(e) e.stopPropagation();
+            phone.classList.remove('open');
+            phone.classList.remove('recents-view');
+            updateMultitaskingView();
+        }
 
         function toggleDarkMode() {
             const body = document.getElementById('mainBody');
@@ -309,7 +318,10 @@
             }
             if (isPowerOn && !phone.classList.contains('is-unlocked')) {
                 unlockPhone();
-            } else { phone.classList.remove('open'); } 
+            } else { 
+                // Return to home screen, but keep app in background (don't kill it)
+                phone.classList.remove('open'); 
+            } 
         }
 
         function setupDrag(e, el, type) {
