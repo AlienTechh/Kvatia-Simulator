@@ -2,14 +2,15 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
+    <!-- 1. აჩერებს ზუმირებას -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FakeOS 1.0 - Fixed</title>
+    <title>FakeOS 1.0</title>
     <style>
-        /* აშორებს ლურჯ ფონს დაჭერისას */
+        /* 2. აშორებს ლურჯ ფონს დაჭერისას და ზედმეტ მოქმედებებს */
         * {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
-            box-sizing: border-box;
+            user-select: none;
         }
 
         :root { --spd: 0.5s; --ios-spring: cubic-bezier(0.3, 1.2, 0.3, 1); --bright: 1; }
@@ -17,7 +18,7 @@
         body { 
             margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; 
             background: #0a0a0a; font-family: -apple-system, sans-serif; overflow: hidden; 
-            user-select: none; touch-action: manipulation; 
+            touch-action: manipulation; 
         }
         
         .phone { 
@@ -25,51 +26,44 @@
             position: relative; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
 
+        /* 3. screen-off აქ აღარ არის, რომ საიტი აღარ გაშავდეს */
+
         .brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 3800; opacity: calc(1 - var(--bright)); }
         .punch-hole { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; background: #000; border-radius: 50%; z-index: 3900; border: 1px solid #1a1a1a; }
         
         .status-bar { 
             position: absolute; top: 0; width: 100%; height: 35px; 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 0 20px; color: white; font-size: 11px; z-index: 1000; 
-        }
-
-        .screen-off { 
-            position: absolute; width: 100%; height: 100%; background: #000; 
-            z-index: 4000; transition: opacity 0.4s; cursor: pointer; 
-            display: flex; justify-content: center; align-items: center; color: white;
+            padding: 0 20px; box-sizing: border-box; color: white; font-size: 11px; z-index: 1000; 
         }
 
         .wallpaper { 
             position: absolute; width: 100%; height: 100%; 
             background: #1a3a5a url('https://unsplash.com') center/cover; 
-            transition: all 0.6s var(--ios-spring); z-index: 1; transform: scale(1.2); 
+            transition: all 0.6s var(--ios-spring); z-index: 1; transform: scale(1.1); 
         }
 
         .lockscreen { 
             position: absolute; width: 100%; height: 100%; z-index: 500; 
             display: flex; flex-direction: column; align-items: center; padding-top: 70px; 
-            color: white; background: rgba(0,0,0,0.1); transition: transform 0.6s var(--ios-spring), opacity 0.4s; 
+            color: white; background: rgba(0,0,0,0.2); transition: all 0.6s var(--ios-spring); 
         }
 
+        .lock-time { font-size: 58px; font-weight: 200; }
+        
         .home-bar { 
             position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); 
             width: 100px; height: 5px; background: white; border-radius: 10px; z-index: 3500; cursor: pointer; 
         }
 
-        /* მდგომარეობები */
-        .is-on .screen-off { opacity: 0; pointer-events: none; }
-        .is-unlocked .lockscreen { transform: translateY(-100%); opacity: 0; }
-        .is-unlocked .wallpaper { transform: scale(1); }
+        /* გახსნის ეფექტი */
+        .unlocked .lockscreen { transform: translateY(-100%); opacity: 0; }
+        .unlocked .wallpaper { transform: scale(1); filter: blur(0); }
     </style>
 </head>
 <body>
 
     <div class="phone" id="phone">
-        <div class="screen-off" id="blackOverlay" onclick="powerOn()">
-            <span style="font-size: 12px; opacity: 0.5;">Click to Power On</span>
-        </div>
-        
         <div class="brightness-overlay"></div>
         <div class="punch-hole"></div>
         
@@ -80,35 +74,30 @@
 
         <div class="wallpaper" id="mainWallpaper"></div>
         
-        <div class="lockscreen" id="lockView" onclick="unlock()">
-            <div style="font-size: 48px; font-weight: 200;">12:00</div>
-            <div style="margin-top: 10px; opacity: 0.8;">Click to unlock</div>
+        <div class="lockscreen" id="lockView" onclick="unlockPhone()">
+            <div class="lock-time" id="clock">12:00</div>
+            <div style="margin-top: 10px; opacity: 0.8;">Tap to unlock</div>
         </div>
 
-        <div class="home-bar" onclick="goHome()"></div>
+        <div class="home-bar" onclick="lockPhone()"></div>
     </div>
 
     <script>
-        const phone = document.getElementById('phone');
-
-        function powerOn() {
-            phone.classList.add('is-on');
+        function unlockPhone() {
+            document.getElementById('phone').classList.add('unlocked');
         }
 
-        function unlock() {
-            phone.classList.add('is-unlocked');
+        function lockPhone() {
+            document.getElementById('phone').classList.remove('unlocked');
         }
 
-        function goHome() {
-            phone.classList.remove('is-unlocked');
-            phone.classList.remove('is-on');
-        }
-
-        // საათის განახლება
         function updateTime() {
             const now = new Date();
-            const timeStr = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('st-time').innerText = timeStr;
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = hours + ":" + minutes;
+            if(document.getElementById('st-time')) document.getElementById('st-time').innerText = timeStr;
+            if(document.getElementById('clock')) document.getElementById('clock').innerText = timeStr;
         }
         setInterval(updateTime, 1000);
         updateTime();
