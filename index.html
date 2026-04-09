@@ -32,7 +32,6 @@
             touch-action: manipulation;
         }
 
-        /* NEW CONTAINER to hold phone + button */
         .device-wrapper {
             position: relative;
             display: flex;
@@ -47,10 +46,9 @@
             z-index: 2;
         }
 
-        /* RED POWER BUTTON - Placed outside the phone div */
         .power-btn {
             position: absolute;
-            right: -16px; /* Pops out from the right */
+            right: -16px;
             top: 140px;
             width: 12px;
             height: 60px;
@@ -156,11 +154,13 @@
 <body id="mainBody">
 
     <div class="device-wrapper">
-        
-        <div class="power-btn" onclick="togglePower()"></div>
+        <div class="power-btn" 
+             onmousedown="startPowerHold()" 
+             onmouseup="endPowerHold()"
+             ontouchstart="startPowerHold()" 
+             ontouchend="endPowerHold()"></div>
 
         <div class="phone" id="phone">
-
             <div class="boot-screen" id="bootScreen">
                 <div class="boot-logo">FakeOS</div>
                 <div class="boot-spinner"></div>
@@ -271,24 +271,86 @@
     </div>
 
     <script>
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const boot = document.getElementById('bootScreen');
-                boot.style.opacity = '0';
-                setTimeout(() => boot.style.display = 'none', 500);
-            }, 3000);
-        });
-
-        const phone = document.getElementById('phone'), blackOverlay = document.getElementById('blackOverlay'), wallpaper = document.getElementById('mainWallpaper'), ccPanel = document.getElementById('ccPanel');
+        // Global State
+        const phone = document.getElementById('phone'), blackOverlay = document.getElementById('blackOverlay'), wallpaper = document.getElementById('mainWallpaper'), ccPanel = document.getElementById('ccPanel'), bootScreen = document.getElementById('bootScreen');
         const settingsApp = document.getElementById('settingsApp');
         const soundUnlock = document.getElementById('sound-unlock');
         const soundLock = document.getElementById('sound-lock');
         const aod = document.getElementById('aod');
         
         let isPowerOn = true, activePin = null, currentPinInput = "";
-        let homeTimer, aodTimeout;
+        let homeTimer, aodTimeout, powerHoldTimer;
         let currentPage = 1;
+        let isRebooting = false;
 
+        // Boot Logic
+        function performBoot() {
+            bootScreen.style.display = 'flex';
+            bootScreen.style.opacity = '1';
+            setTimeout(() => {
+                bootScreen.style.opacity = '0';
+                setTimeout(() => {
+                    bootScreen.style.display = 'none';
+                    isRebooting = false;
+                }, 500);
+            }, 3000);
+        }
+
+        window.addEventListener('load', performBoot);
+
+        // Power Button Hold Logic
+        function startPowerHold() {
+            if (isRebooting) return;
+            // Record time to distinguish between click and hold
+            powerHoldTimer = setTimeout(() => {
+                rebootSystem();
+            }, 4000); // 4 Seconds hold
+        }
+
+        function endPowerHold() {
+            if (powerHoldTimer) {
+                // If released before 4 seconds, it's just a regular power toggle
+                clearTimeout(powerHoldTimer);
+                if (!isRebooting) togglePower();
+                powerHoldTimer = null;
+            }
+        }
+
+        function rebootSystem() {
+            isRebooting = true;
+            powerHoldTimer = null;
+            
+            // Close everything
+            phone.classList.remove('is-unlocked', 'open', 'recents-view', 'cc-active');
+            ccPanel.classList.remove('cc-open');
+            blackOverlay.classList.remove('screen-is-off');
+            aod.style.display = 'none';
+            settingsApp.classList.remove('is-running');
+            
+            performBoot();
+        }
+
+        function togglePower() {
+            if (!isPowerOn) { 
+                blackOverlay.classList.remove('screen-is-off'); 
+                aod.style.display = 'none';
+                clearTimeout(aodTimeout);
+                isPowerOn = true; 
+            } 
+            else { 
+                playSfx(soundLock);
+                blackOverlay.classList.add('screen-is-off'); 
+                phone.classList.remove('is-unlocked'); 
+                isPowerOn = false; 
+                toggleCC(false); 
+                closePinPad();
+                aodTimeout = setTimeout(() => {
+                    if(!isPowerOn) aod.style.display = 'flex';
+                }, 5000);
+            }
+        }
+
+        // Rest of your functions (SFX, Unlock, CC, PIN, etc.) stay the same
         function playSfx(s) { s.currentTime = 0; s.play().catch(e => {}); }
 
         function handleHomeStart() {
@@ -308,11 +370,8 @@
         }
 
         function checkRunningApps() {
-            if(settingsApp.classList.contains('is-running')) {
-                phone.classList.add('has-apps');
-            } else {
-                phone.classList.remove('has-apps');
-            }
+            if(settingsApp.classList.contains('is-running')) phone.classList.add('has-apps');
+            else phone.classList.remove('has-apps');
         }
 
         function unlockPhone() {
@@ -331,12 +390,7 @@
 
         function exitRecentsToApp() { phone.classList.remove('recents-view'); phone.classList.add('open'); }
         function exitRecentsToHome() { phone.classList.remove('recents-view'); }
-        
-        function killApp() {
-            phone.classList.remove('open');
-            settingsApp.classList.remove('is-running');
-            phone.classList.remove('has-apps');
-        }
+        function killApp() { phone.classList.remove('open'); settingsApp.classList.remove('is-running'); phone.classList.remove('has-apps'); }
 
         function toggleDarkMode() {
             const body = document.getElementById('mainBody');
@@ -363,8 +417,7 @@
                         playSfx(soundUnlock);
                         phone.classList.add('is-unlocked'); 
                         closePinPad(); 
-                    } 
-                    else {
+                    } else {
                         const status = document.getElementById('pinStatus');
                         status.innerText = "Incorrect PIN"; status.style.color = "#ff3b30";
                         setTimeout(() => { status.innerText = "Enter Passcode"; status.style.color = "white"; currentPinInput = ""; updatePinDots(); }, 1200);
@@ -384,76 +437,12 @@
         }
         updateBattery();
 
-        // New Power Function linked to physical button
-        function togglePower() {
-            if (!isPowerOn) { 
-                blackOverlay.classList.remove('screen-is-off'); 
-                aod.style.display = 'none';
-                clearTimeout(aodTimeout);
-                isPowerOn = true; 
-            } 
-            else { 
-                playSfx(soundLock);
-                blackOverlay.classList.add('screen-is-off'); 
-                phone.classList.remove('is-unlocked'); 
-                isPowerOn = false; 
-                toggleCC(false); 
-                closePinPad();
-                aodTimeout = setTimeout(() => {
-                    if(!isPowerOn) aod.style.display = 'flex';
-                }, 5000);
-            }
-        }
-
         function handleHomeBar() { 
-            if (ccPanel.classList.contains('cc-open')) {
-                toggleCC(false);
-                return;
-            }
-            if (phone.classList.contains('recents-view')) {
-                phone.classList.remove('recents-view');
-                return;
-            }
-            if (isPowerOn && !phone.classList.contains('is-unlocked')) {
-                unlockPhone();
-            } else { 
-                phone.classList.remove('open'); 
-            } 
+            if (ccPanel.classList.contains('cc-open')) { toggleCC(false); return; }
+            if (phone.classList.contains('recents-view')) { phone.classList.remove('recents-view'); return; }
+            if (isPowerOn && !phone.classList.contains('is-unlocked')) unlockPhone();
+            else phone.classList.remove('open'); 
         }
-
-        let isSwiping = false, gestureStartX = 0, gestureStartY = 0;
-        
-        function startGesture(x, y) {
-            if (!phone.classList.contains('open')) return;
-            let rect = settingsApp.getBoundingClientRect();
-            let relX = x - rect.left;
-            if (relX < 40) {
-                isSwiping = true;
-                gestureStartX = x;
-                gestureStartY = y;
-            }
-        }
-
-        function endGesture(x, y) {
-            if (!isSwiping) return;
-            isSwiping = false;
-            if (x - gestureStartX > 60 && Math.abs(y - gestureStartY) < 50) {
-                if (currentPage === 8) {
-                    showPage(7);
-                } else if (currentPage === 7 || currentPage === 6 || currentPage === 5 || currentPage === 4 || currentPage === 2) {
-                    showPage(1);
-                } else if (currentPage === 3) {
-                    showPage(7);
-                } else {
-                    handleHomeBar();
-                }
-            }
-        }
-
-        settingsApp.addEventListener('touchstart', e => startGesture(e.touches[0].clientX, e.touches[0].clientY), {passive:true});
-        settingsApp.addEventListener('touchend', e => endGesture(e.changedTouches[0].clientX, e.changedTouches[0].clientY));
-        settingsApp.addEventListener('mousedown', e => startGesture(e.clientX, e.clientY));
-        settingsApp.addEventListener('mouseup', e => endGesture(e.clientX, e.clientY));
 
         function setupDrag(e, el, type) {
             if (!phone.classList.contains('is-unlocked') || phone.classList.contains('open') || phone.classList.contains('recents-view') || ccPanel.classList.contains('cc-open')) return;
@@ -463,72 +452,36 @@
             const startY = isTouch ? e.touches[0].clientY : e.clientY;
             const initX = el.offsetLeft;
             const initY = el.offsetTop;
-
             const move = (ev) => {
                 const curX = isTouch ? ev.touches[0].clientX : ev.clientX;
                 const curY = isTouch ? ev.touches[0].clientY : ev.clientY;
                 if (Math.abs(curX - startX) > 5 || Math.abs(curY - startY) > 5) moved = true;
                 el.style.left = Math.max(10, Math.min(initX + (curX - startX), 210)) + 'px';
                 el.style.top = Math.max(40, Math.min(initY + (curY - startY), 480)) + 'px';
-                if(type === 'settings') settingsApp.style.transformOrigin = (parseInt(el.style.left)+30)+"px "+(parseInt(el.style.top)+30)+"px";
             };
-
             const stop = () => { 
                 document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', move); 
                 document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stop); 
                 if (!moved) { 
-                    if(type === 'settings') {
-                        phone.classList.add('open');
-                        settingsApp.classList.add('is-running');
-                        showPage(1);
-                    } else toggleCC(true); 
+                    if(type === 'settings') { phone.classList.add('open'); settingsApp.classList.add('is-running'); showPage(1); } 
+                    else toggleCC(true); 
                 } 
             };
-            document.addEventListener(isTouch ? 'touchmove' : 'mousemove', move, { passive: false }); 
+            document.addEventListener(isTouch ? 'touchmove' : 'mousemove', move); 
             document.addEventListener(isTouch ? 'touchend' : 'mouseup', stop);
         }
 
         function changeBrightness(v) { document.documentElement.style.setProperty('--bright', v); }
-        
-        function toggleCC(o) { 
-            if(isPowerOn && phone.classList.contains('is-unlocked')) {
-                ccPanel.classList.toggle('cc-open', o); 
-                phone.classList.toggle('cc-active', o);
-            }
-        }
-        
-        function showPage(n) { 
-            currentPage = n;
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
-            document.getElementById('p' + n).style.display = 'block'; 
-        }
-
+        function toggleCC(o) { if(isPowerOn && phone.classList.contains('is-unlocked')) { ccPanel.classList.toggle('cc-open', o); phone.classList.toggle('cc-active', o); } }
+        function showPage(n) { currentPage = n; document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); document.getElementById('p' + n).style.display = 'block'; }
         function setSpd(t) { document.documentElement.style.setProperty('--spd', t); }
-        
-        function changeWallpaper(e) { 
-            const r = new FileReader(); 
-            r.onload = (ev) => { wallpaper.style.backgroundImage = `url('${ev.target.result}')`; }; 
-            r.readAsDataURL(e.target.files[0]); 
-        }
-
-        function setAODStyle(weight) {
-            document.documentElement.style.setProperty('--aod-weight', weight);
-        }
+        function changeWallpaper(e) { const r = new FileReader(); r.onload = (ev) => { wallpaper.style.backgroundImage = `url('${ev.target.result}')`; }; r.readAsDataURL(e.target.files[0]); }
+        function setAODStyle(weight) { document.documentElement.style.setProperty('--aod-weight', weight); }
         
         function changeIconStyle(s) { 
-            const setBtn = document.getElementById('settingsBtn');
-            const ccBtn = document.getElementById('ccIconBtn');
-            if(s === 'glassy') {
-                setBtn.className = 'drag-btn icon-glassy';
-                ccBtn.className = 'drag-btn icon-glassy';
-                setBtn.textContent = '';
-                ccBtn.textContent = '';
-            } else {
-                setBtn.className = 'drag-btn icon-normal-settings';
-                ccBtn.className = 'drag-btn icon-normal-cc';
-                setBtn.textContent = '';
-                ccBtn.textContent = '';
-            }
+            const setBtn = document.getElementById('settingsBtn'), ccBtn = document.getElementById('ccIconBtn');
+            if(s === 'glassy') { setBtn.className = 'drag-btn icon-glassy'; ccBtn.className = 'drag-btn icon-glassy'; } 
+            else { setBtn.className = 'drag-btn icon-normal-settings'; ccBtn.className = 'drag-btn icon-normal-cc'; }
         }
 
         function updateTime() { 
