@@ -7,8 +7,7 @@
     <style>
         :root { 
             --spd: 0.5s; 
-            /* iOS 26 Snappy Spring Bezier */
-            --ios-spring: cubic-bezier(0.4, 0, 0.2, 1.2); 
+            --ios-spring: cubic-bezier(0.3, 1.2, 0.3, 1); 
             --bright: 1;
             --ios-blue: #007aff;
             --bg-app: #f2f2f7;
@@ -75,7 +74,7 @@
         .screen-off { position: absolute; width: 100%; height: 100%; background: #000; z-index: 4000; transition: opacity 0.4s; cursor: pointer; opacity: 0; pointer-events: none; }
         .screen-is-off { opacity: 1; pointer-events: auto; }
 
-        .wallpaper { position: absolute; width: 100%; height: 100%; background: #1a3a5a url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover; transition: transform 0.6s var(--ios-spring), filter 0.5s; z-index: 1; transform: scale(1.1); }
+        .wallpaper { position: absolute; width: 100%; height: 100%; background: #1a3a5a url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover; transition: transform 0.8s var(--ios-spring), filter 0.5s; z-index: 1; transform: scale(1.1); }
         
         .cc-active .wallpaper { filter: blur(25px) brightness(0.6); transform: scale(1.15); }
 
@@ -116,7 +115,7 @@
         #no-apps-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: 600; font-size: 18px; opacity: 0; pointer-events: none; z-index: 90; transition: opacity 0.3s; }
         .recents-view:not(.has-apps) #no-apps-msg { opacity: 0.7; }
 
-        .app { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-app); z-index: 100; transform: scale(0); opacity: 0; pointer-events: none; transition: transform var(--spd) var(--ios-spring), opacity 0.3s, border-radius 0.3s; display: flex; flex-direction: column; border-radius: 54px; overflow: hidden; }
+        .app { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-app); z-index: 100; transform: scale(0); opacity: 0; pointer-events: none; transition: transform var(--spd) var(--ios-spring), opacity 0.3s; display: flex; flex-direction: column; border-radius: 44px; overflow: hidden; }
         .header { padding: 50px 20px 15px; font-weight: 700; font-size: 32px; color: var(--text-main); background: var(--bg-app); }
         .item { padding: 14px 20px; font-size: 17px; border-bottom: 0.5px solid var(--border-color); color: var(--text-main); display: flex; justify-content: space-between; background: var(--bg-item); align-items: center; }
         
@@ -126,8 +125,8 @@
         .is-unlocked .drag-btn { opacity: 1; transform: scale(1); }
         .is-unlocked .lockscreen { transform: translateY(-100%); opacity: 0; pointer-events: none; }
         
-        .open .app { transform: scale(1) !important; opacity: 1 !important; pointer-events: auto !important; z-index: 1000; left: 0 !important; top: 0 !important; border-radius: 0px !important; }
-        .open .wallpaper { filter: blur(25px); transform: scale(1.1) !important; }
+        .open .app { transform: scale(1) !important; opacity: 1 !important; pointer-events: auto !important; z-index: 1000; left: 0 !important; top: 0 !important; }
+        .open .wallpaper { filter: blur(25px); transform: scale(1.15) !important; }
     </style>
 </head>
 <body id="mainBody">
@@ -186,7 +185,7 @@
             <div class="num-grid">
                 <div class="num-btn" onclick="inputPin(1)">1</div><div class="num-btn" onclick="inputPin(2)">2</div><div class="num-btn" onclick="inputPin(3)">3</div>
                 <div class="num-btn" onclick="inputPin(4)">4</div><div class="num-btn" onclick="inputPin(5)">5</div><div class="num-btn" onclick="inputPin(6)">6</div>
-                <div class="num-btn" onclick="inputPin(7)">7</div><div class="num-btn" onclick="inputPin(8)">8</div><div class="num-btn" onclick="inputPin(9)">9</div>
+                <div class="num-btn" onclick="inputPin(7)">7</div><div class="num-btn" onclick="inputPin(😎">8</div><div class="num-btn" onclick="inputPin(9)">9</div>
                 <div></div><div class="num-btn" onclick="inputPin(0)">0</div>
             </div>
             <div style="margin-top: 40px; color: #fff; font-weight:600; cursor: pointer; opacity: 0.8;" onclick="closePinPad()">Cancel</div>
@@ -194,11 +193,11 @@
 
         <div class="drag-btn icon-normal-settings" id="settingsBtn" 
              onmousedown="setupDrag(event, this, 'settings')" 
-             ontouchstart="setupDrag(event, this, 'settings')">⚙️</div>
+             ontouchstart="setupDrag(event, this, 'settings')"></div>
              
         <div class="drag-btn icon-normal-cc" id="ccIconBtn" 
              onmousedown="setupDrag(event, this, 'cc')" 
-             ontouchstart="setupDrag(event, this, 'cc')">📱</div>
+             ontouchstart="setupDrag(event, this, 'cc')"></div>
 
         <input type="file" id="file-input" hidden accept="image/*" onchange="changeWallpaper(event)">
 
@@ -223,7 +222,7 @@
             </div>
             <div id="p7" class="page" style="display:none;">
                 <div class="item" onclick="showPage(3)">Wallpaper <span>›</span></div>
-                <div class="item" onclick="showPage(8)">AOD Customization <span>›</span></div>
+                <div class="item" onclick="showPage(😎">AOD Customization <span>›</span></div>
                 <div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div>
             </div>
             <div id="p8" class="page" style="display:none;">
@@ -288,9 +287,8 @@
         }
 
         function unlockPhone() {
-            if(activePin) {
-                document.getElementById('pinPad').style.display = 'flex';
-            } else {
+            if(activePin) document.getElementById('pinPad').style.display = 'flex';
+            else {
                 if(!phone.classList.contains('is-unlocked')) playSfx(soundUnlock);
                 phone.classList.add('is-unlocked');
             }
@@ -412,7 +410,7 @@
             if (!isSwiping) return;
             isSwiping = false;
             if (x - gestureStartX > 60 && Math.abs(y - gestureStartY) < 50) {
-                if (currentPage === 8) {
+                if (currentPage === 😎 {
                     showPage(7);
                 } else if (currentPage === 7 || currentPage === 6 || currentPage === 5 || currentPage === 4 || currentPage === 2) {
                     showPage(1);
@@ -444,11 +442,7 @@
                 if (Math.abs(curX - startX) > 5 || Math.abs(curY - startY) > 5) moved = true;
                 el.style.left = Math.max(10, Math.min(initX + (curX - startX), 210)) + 'px';
                 el.style.top = Math.max(40, Math.min(initY + (curY - startY), 480)) + 'px';
-                
-                // iOS 26 Dynamic Transform Logic
-                if(type === 'settings') {
-                    settingsApp.style.transformOrigin = (parseInt(el.style.left)+28)+"px "+(parseInt(el.style.top)+28)+"px";
-                }
+                if(type === 'settings') settingsApp.style.transformOrigin = (parseInt(el.style.left)+30)+"px "+(parseInt(el.style.top)+30)+"px";
             };
 
             const stop = () => { 
@@ -456,8 +450,6 @@
                 document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stop); 
                 if (!moved) { 
                     if(type === 'settings') {
-                        // Recalculate origin once more before opening for frame-perfection
-                        settingsApp.style.transformOrigin = (parseInt(el.style.left)+28)+"px "+(parseInt(el.style.top)+28)+"px";
                         phone.classList.add('open');
                         settingsApp.classList.add('is-running');
                         showPage(1);
@@ -480,15 +472,14 @@
         function showPage(n) { 
             currentPage = n;
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
-            const p = document.getElementById('p' + n);
-            if(p) p.style.display = 'block'; 
+            document.getElementById('p' + n).style.display = 'block'; 
         }
 
         function setSpd(t) { document.documentElement.style.setProperty('--spd', t); }
         
         function changeWallpaper(e) { 
             const r = new FileReader(); 
-            r.onload = (ev) => { wallpaper.style.backgroundImage = `url('${ev.target.result}')`; }; 
+            r.onload = (ev) => { wallpaper.style.backgroundImage = url('${ev.target.result}'); }; 
             r.readAsDataURL(e.target.files[0]); 
         }
 
@@ -502,13 +493,13 @@
             if(s === 'glassy') {
                 setBtn.className = 'drag-btn icon-glassy';
                 ccBtn.className = 'drag-btn icon-glassy';
-                setBtn.textContent = 'G';
-                ccBtn.textContent = 'C';
+                setBtn.textContent = '⚙️';
+                ccBtn.textContent = '📱';
             } else {
                 setBtn.className = 'drag-btn icon-normal-settings';
                 ccBtn.className = 'drag-btn icon-normal-cc';
-                setBtn.textContent = '⚙️';
-                ccBtn.textContent = '📱';
+                setBtn.textContent = '';
+                ccBtn.textContent = '';
             }
         }
 
