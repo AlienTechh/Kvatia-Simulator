@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FakeOS 1.0</title>
+    <title>FakeOS 1.0 - Fixed</title>
     <style>
         :root { 
             --spd: 0.5s; 
@@ -31,12 +31,23 @@
             touch-action: manipulation;
         }
         
-        /* NEW: Physical Power Button */
+        .phone-wrapper { position: relative; z-index: 10; }
+
+        /* THE RED POWER BUTTON - Click this to fix the black screen! */
         .power-btn {
-            position: absolute; right: -14px; top: 140px; width: 4px; height: 50px;
-            background: #ff3b30; border-radius: 0 5px 5px 0; cursor: pointer; z-index: 5000;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            position: absolute; 
+            right: -14px; 
+            top: 140px; 
+            width: 8px; 
+            height: 60px;
+            background: #ff3b30; 
+            border-radius: 0 5px 5px 0; 
+            cursor: pointer; 
+            z-index: 9999; /* Highest priority */
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+            transition: transform 0.1s;
         }
+        .power-btn:active { transform: scaleX(0.8); }
 
         .phone { 
             width: 290px; height: 600px; background: #000; 
@@ -44,6 +55,15 @@
             position: relative; overflow: hidden; 
             box-shadow: 0 50px 100px rgba(0,0,0,0.9);
         }
+
+        /* Screen States */
+        .screen-off { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 5000; transition: opacity 0.3s; 
+            pointer-events: auto; /* Blocks screen clicks when off */
+            display: flex; justify-content: center; align-items: center;
+        }
+        .screen-is-on { opacity: 0; pointer-events: none; }
 
         .brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: black; pointer-events: none; z-index: 3800; opacity: calc(1 - var(--bright)); }
         .punch-hole { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 80px; height: 22px; background: #000; border-radius: 20px; z-index: 3900; border: 1px solid #1a1a1a; }
@@ -55,15 +75,13 @@
         .cc-slider-box { width: 220px; background: rgba(255,255,255,0.15); padding: 20px; border-radius: 28px; color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
         .cc-btn { width: 220px; padding: 15px; background: rgba(255,255,255,0.15); border-radius: 20px; color: white; font-weight: 600; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
 
-        .screen-off { position: absolute; width: 100%; height: 100%; background: #000; z-index: 4000; transition: opacity 0.3s; pointer-events: auto; opacity: 1; }
-        .screen-is-on { opacity: 0; pointer-events: none; }
-
         .wallpaper { position: absolute; width: 100%; height: 100%; background: #1a3a5a url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover; transition: transform 0.8s var(--ios-spring), filter 0.5s; z-index: 1; transform: scale(1.1); }
         
-        /* UPDATED: HyperOS 2 Unlock Animation */
+        /* HyperOS 2 Unlock Animation */
         .lockscreen { position: absolute; width: 100%; height: 100%; z-index: 3000; display: flex; flex-direction: column; align-items: center; padding-top: 80px; color: white; transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s; }
         .lock-time { font-size: 64px; font-weight: 200; }
 
+        /* PIN Pad */
         .pin-pad { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); z-index: 3100; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; }
         .pin-dots { display: flex; gap: 15px; margin-bottom: 40px; }
         .dot { width: 12px; height: 12px; border: 1.5px solid #fff; border-radius: 50%; }
@@ -71,18 +89,15 @@
         .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .num-btn { width: 65px; height: 65px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; font-size: 28px; cursor: pointer; }
 
-        .fingerprint-scanner { margin-top: auto; margin-bottom: 100px; width: 70px; height: 70px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 32px; animation: pulse 2s infinite; pointer-events: auto; cursor: pointer; }
-
+        .fingerprint-scanner { margin-top: auto; margin-bottom: 100px; width: 70px; height: 70px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 32px; animation: pulse 2s infinite; cursor: pointer; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); } 70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
 
-        /* App Icon Styles */
+        /* Icons */
         .drag-btn { position: absolute; width: 56px; height: 56px; border-radius: 14px; display: flex; justify-content: center; align-items: center; font-size: 28px; cursor: grab; z-index: 5; opacity: 0; transform: scale(0.5); transition: opacity 0.5s, transform 0.6s var(--ios-spring); }
         .icon-normal-settings { background: linear-gradient(180deg, #5e5e62 0%, #2c2c2e 100%); color: #fff; }
         .icon-normal-cc { background: linear-gradient(180deg, #007aff 0%, #004080 100%); color: #fff; }
         .icon-playstore { background: #fff; color: #4285F4; overflow: hidden; }
         .icon-flappy { background: #54C0C9; display: none; }
-        
-        /* Uninstall Button */
         .uninstall-btn { position: absolute; top: -10px; right: -10px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; border: 2px solid white; cursor: pointer; }
 
         #settingsBtn { top: 110px; left: 30px; }
@@ -90,324 +105,235 @@
         #playstoreBtn { top: 110px; left: 190px; }
         #flappyBtn { top: 190px; left: 30px; }
 
+        /* Multitasking */
         .multitasking-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 80; display: none; background: rgba(0,0,0,0.1); }
-        .recents-view .multitasking-overlay { display: block; pointer-events: auto; }
-        .recents-view .drag-btn { opacity: 0 !important; pointer-events: none !important; }
-
+        .recents-view .multitasking-overlay { display: block; }
         .recents-view .app.is-running { display: flex !important; opacity: 1 !important; left: 50% !important; top: 45% !important; transform: translate(-50%, -50%) scale(0.65) !important; pointer-events: none !important; box-shadow: 0 30px 60px rgba(0,0,0,0.5); z-index: 105; }
-        .app-card-trigger { position: absolute; top: 20%; left: 15%; width: 70%; height: 50%; z-index: 110; display: none; cursor: pointer; }
-        .recents-view .app.is-running ~ .app-card-trigger { display: block; }
-        
-        #kill-app-btn { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 50%; color: #ff3b30; font-size: 22px; font-weight: bold; display: none; justify-content: center; align-items: center; z-index: 120; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); }
+        #kill-app-btn { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.2); border-radius: 50%; color: #ff3b30; font-size: 22px; display: none; justify-content: center; align-items: center; z-index: 120; cursor: pointer; }
         .recents-view.has-apps #kill-app-btn { display: flex; }
-        .recents-view .wallpaper { transform: scale(0.9) !important; filter: blur(15px); }
 
-        #no-apps-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: 600; font-size: 18px; opacity: 0; pointer-events: none; z-index: 90; transition: opacity 0.3s; }
-        .recents-view:not(.has-apps) #no-apps-msg { opacity: 0.7; }
-
+        /* Apps */
         .app { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-app); z-index: 100; transform: scale(0); opacity: 0; pointer-events: none; transition: transform var(--spd) var(--ios-spring), opacity 0.3s; display: flex; flex-direction: column; border-radius: 44px; overflow: hidden; }
-        .header { padding: 50px 20px 15px; font-weight: 700; font-size: 32px; color: var(--text-main); background: var(--bg-app); }
+        .header { padding: 50px 20px 15px; font-weight: 700; font-size: 32px; color: var(--text-main); }
         .item { padding: 14px 20px; font-size: 17px; border-bottom: 0.5px solid var(--border-color); color: var(--text-main); display: flex; justify-content: space-between; background: var(--bg-item); align-items: center; }
         
-        /* NEW: Flappy Game UI */
         #flappyCanvas { background: #70c5ce; flex: 1; display: block; }
 
-        .home-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 5px; background: rgba(255,255,255,0.8); border-radius: 10px; z-index: 3500; cursor: pointer; }
+        .home-bar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 5px; background: rgba(255,255,255,0.8); border-radius: 10px; z-index: 4600; cursor: pointer; }
 
-        /* HyperOS Animation Trigger */
+        /* Animation States */
         .is-unlocked .wallpaper { transform: scale(1); }
         .is-unlocked .drag-btn { opacity: 1; transform: scale(1); }
         .is-unlocked .lockscreen { transform: scale(1.3); opacity: 0; pointer-events: none; }
-        
-        .open .app { transform: scale(1) !important; opacity: 1 !important; pointer-events: auto !important; z-index: 1000; left: 0 !important; top: 0 !important; }
-        .open .wallpaper { filter: blur(25px); transform: scale(1.15) !important; }
+        .open .app { transform: scale(1) !important; opacity: 1 !important; pointer-events: auto !important; }
     </style>
 </head>
 <body id="mainBody">
 
-    <div class="power-btn" onclick="togglePower()"></div>
+    <div class="phone-wrapper">
+        <div class="power-btn" onclick="togglePower()"></div>
 
-    <div class="phone" id="phone">
-        <audio id="sound-unlock" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
-        <audio id="sound-lock" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+        <div class="phone" id="phone">
+            <audio id="sound-unlock" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
+            <audio id="sound-lock" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
 
-        <div class="brightness-overlay"></div>
-        <div class="punch-hole"></div>
-        <div class="multitasking-overlay" onclick="exitRecentsToHome()"></div>
-        <div id="no-apps-msg">No Open Apps</div>
-
-        <div class="status-bar">
-            <span id="st-time">12:00</span>
-            <div class="battery-section" onclick="toggleCC(true)">
-                <span id="battery-level">--%</span>
-                <span id="battery-icon"></span>
+            <div class="screen-off" id="blackOverlay" onclick="hintPower()">
+                <div id="hint-text" style="color:white; opacity:0; transition:opacity 0.3s; font-size:12px;">Press the Red Button on the right →</div>
             </div>
-        </div>
+            
+            <div class="brightness-overlay"></div>
+            <div class="punch-hole"></div>
+            <div class="multitasking-overlay" onclick="exitRecentsToHome()"></div>
 
-        <div class="control-center" id="ccPanel">
-            <div class="cc-slider-box">
-                <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Brightness</div>
-                <input type="range" min="0.1" max="1" step="0.1" value="1" oninput="changeBrightness(this.value)" style="width:100%;">
+            <div class="status-bar">
+                <span id="st-time">12:00</span>
+                <div onclick="toggleCC(true)" style="cursor:pointer">100% 🔋</div>
             </div>
-            <div class="cc-btn" onclick="toggleDarkMode()"> Appearance: <span id="mode-text">Light</span></div>
-            <div class="cc-btn" style="background:rgba(255,255,255,0.1); margin-top:10px;" onclick="toggleCC(false)">Done</div>
-        </div>
 
-        <div class="screen-off" id="blackOverlay"></div>
-        <div class="wallpaper" id="mainWallpaper"></div>
-        
-        <div class="lockscreen" id="lockView">
-            <div class="lock-time" id="clock">12:00</div>
-            <div style="margin-top: 5px; opacity: 0.7; font-size: 14px;">Hold Home Bar to Unlock</div>
-            <div class="fingerprint-scanner" id="fp-icon" onclick="unlockByFingerprint()"></div>
-        </div>
-
-        <div class="pin-pad" id="pinPad">
-            <div id="pinStatus" style="margin-bottom: 25px; font-weight: 500; font-size: 18px;">Enter Passcode</div>
-            <div class="pin-dots" id="pinDots">
-                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-            </div>
-            <div class="num-grid">
-                <div class="num-btn" onclick="inputPin(1)">1</div><div class="num-btn" onclick="inputPin(2)">2</div><div class="num-btn" onclick="inputPin(3)">3</div>
-                <div class="num-btn" onclick="inputPin(4)">4</div><div class="num-btn" onclick="inputPin(5)">5</div><div class="num-btn" onclick="inputPin(6)">6</div>
-                <div class="num-btn" onclick="inputPin(7)">7</div><div class="num-btn" onclick="inputPin(8)">8</div><div class="num-btn" onclick="inputPin(9)">9</div>
-                <div></div><div class="num-btn" onclick="inputPin(0)">0</div>
-            </div>
-            <div style="margin-top: 40px; color: #fff; font-weight:600; cursor: pointer; opacity: 0.8;" onclick="closePinPad()">Cancel</div>
-        </div>
-
-        <div class="drag-btn icon-normal-settings" id="settingsBtn" onmousedown="setupDrag(event, this, 'settings')" ontouchstart="setupDrag(event, this, 'settings')">⚙️</div>
-        <div class="drag-btn icon-normal-cc" id="ccIconBtn" onmousedown="setupDrag(event, this, 'cc')" ontouchstart="setupDrag(event, this, 'cc')">📊</div>
-        <div class="drag-btn icon-playstore" id="playstoreBtn" onmousedown="setupDrag(event, this, 'store')" ontouchstart="setupDrag(event, this, 'store')">▶️</div>
-        <div class="drag-btn icon-flappy" id="flappyBtn" onmousedown="setupDrag(event, this, 'flappy')" ontouchstart="setupDrag(event, this, 'flappy')">
-            🐦
-            <div class="uninstall-btn" id="uninstallBtn" onclick="deleteGame(event)">✕</div>
-        </div>
-
-        <input type="file" id="file-input" hidden accept="image/*" onchange="changeWallpaper(event)">
-
-        <div class="app" id="settingsApp">
-            <div class="header">Settings</div>
-            <div id="p1" class="page">
-                <div class="item" onclick="showPage(6)">Screen Lock <span>›</span></div>
-                <div class="item" onclick="showPage(4)">About Phone <span>›</span></div>
-                <div class="item" onclick="showPage(2)">Animation Speed <span>›</span></div>
-                <div class="item" onclick="showPage(5)">Icons <span>›</span></div>
-                <div class="item" onclick="showPage(3)">Wallpaper <span>›</span></div>
-            </div>
-            <div id="p2" class="page" style="display:none;"><div class="item" onclick="setSpd('1.5s')">Slow</div><div class="item" onclick="setSpd('0.5s')">Normal</div><div class="item" onclick="setSpd('0.2s')">Fast</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p3" class="page" style="display:none;"><div class="item" onclick="document.getElementById('file-input').click()">Choose Wallpaper +</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p4" class="page" style="display:none;"><div style="padding:40px; text-align:center;"><h1 style="color:var(--text-main);">FakeOS 1.0</h1><p style="color:var(--text-main); opacity:0.6;">POCO X6 Pro Edition</p></div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p5" class="page" style="display:none;"><div class="item" onclick="changeIconStyle('glassy')">Glassmorphism</div><div class="item" onclick="changeIconStyle('normal')">Classic</div><div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div></div>
-            <div id="p6" class="page" style="display:none;">
-                <div class="item">Fingerprint <div style="display:flex; gap: 12px;"><span onclick="setFingerprint(true)" style="color:#34c759; font-weight: bold;">ON</span><span onclick="setFingerprint(false)" style="color:#ff3b30; font-weight: bold;">OFF</span></div></div>
-                <div class="item" id="createPinBtn" onclick="createPin()">Create a PIN <span style="color:var(--ios-blue);">+</span></div>
-                <div class="item" id="turnOffPinBtn" style="display:none;" onclick="turnOffPin()">Turn off PIN <span style="color:#ff3b30;">✕</span></div>
-                <div class="item" style="color:var(--ios-blue); font-weight:600;" onclick="showPage(1)">Back</div>
-            </div>
-        </div>
-
-        <div class="app" id="storeApp">
-            <div class="header">Play Store</div>
-            <div class="item" style="margin:20px; border-radius:15px; border:1px solid #ddd; display:flex; gap:15px;">
-                <div style="width:50px; height:50px; background:#54C0C9; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size:25px;">🐦</div>
-                <div style="flex:1">
-                    <div style="font-weight:700">Flappy Bird</div>
-                    <div style="font-size:12px; opacity:0.6">4.5 ★ • 10MB</div>
+            <div class="control-center" id="ccPanel">
+                <div class="cc-slider-box">
+                    <div style="font-size:14px; margin-bottom:10px;">Brightness</div>
+                    <input type="range" min="0.1" max="1" step="0.1" value="1" oninput="changeBrightness(this.value)" style="width:100%;">
                 </div>
-                <button id="installBtn" onclick="installGame()" style="background:#01875f; color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:600;">Install</button>
+                <div class="cc-btn" onclick="toggleDarkMode()">Appearance: <span id="mode-text">Light</span></div>
+                <div class="cc-btn" onclick="toggleCC(false)">Done</div>
             </div>
-        </div>
 
-        <div class="app" id="flappyApp">
-            <canvas id="flappyCanvas"></canvas>
-        </div>
-        
-        <div id="kill-app-btn" onclick="killApp()">✕</div>
-        <div class="app-card-trigger" id="cardTrigger" onclick="exitRecentsToApp()"></div>
+            <div class="wallpaper" id="mainWallpaper"></div>
+            
+            <div class="lockscreen" id="lockView">
+                <div class="lock-time" id="clock">12:00</div>
+                <div class="fingerprint-scanner" id="fp-icon" style="display:flex;" onclick="unlockByFingerprint()"></div>
+            </div>
 
-        <div class="home-bar" id="bottomBar" 
-             onmousedown="handleHomeStart()" onmouseup="handleHomeEnd()"
-             ontouchstart="handleHomeStart()" ontouchend="handleHomeEnd()"></div>
+            <div class="pin-pad" id="pinPad">
+                <div id="pinStatus" style="margin-bottom: 25px;">Enter Passcode</div>
+                <div class="pin-dots" id="pinDots">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="num-grid">
+                    <div class="num-btn" onclick="inputPin(1)">1</div><div class="num-btn" onclick="inputPin(2)">2</div><div class="num-btn" onclick="inputPin(3)">3</div>
+                    <div class="num-btn" onclick="inputPin(4)">4</div><div class="num-btn" onclick="inputPin(5)">5</div><div class="num-btn" onclick="inputPin(6)">6</div>
+                    <div class="num-btn" onclick="inputPin(7)">7</div><div class="num-btn" onclick="inputPin(8)">8</div><div class="num-btn" onclick="inputPin(9)">9</div>
+                    <div></div><div class="num-btn" onclick="inputPin(0)">0</div>
+                </div>
+            </div>
+
+            <div class="drag-btn icon-normal-settings" id="settingsBtn" onmousedown="setupDrag(event, this, 'settings')" ontouchstart="setupDrag(event, this, 'settings')">⚙️</div>
+            <div class="drag-btn icon-normal-cc" id="ccIconBtn" onmousedown="setupDrag(event, this, 'cc')" ontouchstart="setupDrag(event, this, 'cc')">📊</div>
+            <div class="drag-btn icon-playstore" id="playstoreBtn" onmousedown="setupDrag(event, this, 'store')" ontouchstart="setupDrag(event, this, 'store')">▶️</div>
+            <div class="drag-btn icon-flappy" id="flappyBtn" onmousedown="setupDrag(event, this, 'flappy')" ontouchstart="setupDrag(event, this, 'flappy')">
+                🐦<div class="uninstall-btn" onclick="deleteGame(event)">✕</div>
+            </div>
+
+            <div class="app" id="settingsApp">
+                <div class="header">Settings</div>
+                <div class="item" onclick="createPin()">Create PIN</div>
+                <div class="item" onclick="setSpd('0.2s')">Fast Animations</div>
+                <div class="item" onclick="toggleDarkMode()">Toggle Dark Mode</div>
+            </div>
+
+            <div class="app" id="storeApp">
+                <div class="header">Play Store</div>
+                <div class="item" style="margin:20px; border-radius:15px; border:1px solid #ddd;">
+                    <div style="font-weight:700">Flappy Bird</div>
+                    <button id="installBtn" onclick="installGame()" style="background:#01875f; color:white; border:none; padding:8px 15px; border-radius:20px;">Install</button>
+                </div>
+            </div>
+
+            <div class="app" id="flappyApp">
+                <canvas id="flappyCanvas"></canvas>
+            </div>
+            
+            <div id="kill-app-btn" onclick="killApp()">✕</div>
+            <div class="home-bar" id="bottomBar" onmousedown="handleHomeStart()" onmouseup="handleHomeEnd()" ontouchstart="handleHomeStart()" ontouchend="handleHomeEnd()"></div>
+        </div>
     </div>
 
     <script>
-        const phone = document.getElementById('phone'), blackOverlay = document.getElementById('blackOverlay'), wallpaper = document.getElementById('mainWallpaper'), ccPanel = document.getElementById('ccPanel');
-        const settingsApp = document.getElementById('settingsApp'), storeApp = document.getElementById('storeApp'), flappyApp = document.getElementById('flappyApp');
+        const phone = document.getElementById('phone'), blackOverlay = document.getElementById('blackOverlay');
         const soundUnlock = document.getElementById('sound-unlock'), soundLock = document.getElementById('sound-lock');
-        
-        let isPowerOn = false, activePin = null, currentPinInput = "";
-        let homeTimer, isRunning = { settings: false, store: false, flappy: false };
+        let isPowerOn = false, activePin = null, currentPinInput = "", isRunning = { settings: false, store: false, flappy: false }, homeTimer;
 
-        function playSfx(s) { s.currentTime = 0; s.play().catch(e => {}); }
-
-        /* Power Button Logic */
         function togglePower() {
+            isPowerOn = !isPowerOn;
             if (isPowerOn) {
-                playSfx(soundLock);
+                blackOverlay.classList.add('screen-is-on');
+            } else {
+                soundLock.play().catch(()=>{});
                 blackOverlay.classList.remove('screen-is-on');
                 phone.classList.remove('is-unlocked', 'open');
-                isPowerOn = false;
                 toggleCC(false);
-                closePinPad();
-            } else {
-                blackOverlay.classList.add('screen-is-on');
-                isPowerOn = true;
+            }
+        }
+
+        function hintPower() {
+            const hint = document.getElementById('hint-text');
+            hint.style.opacity = "1";
+            setTimeout(() => hint.style.opacity = "0", 2000);
+        }
+
+        function unlockByFingerprint() {
+            if(activePin) document.getElementById('pinPad').style.display = 'flex';
+            else {
+                soundUnlock.play().catch(()=>{});
+                phone.classList.add('is-unlocked');
             }
         }
 
         function handleHomeStart() {
-            if (isPowerOn && phone.classList.contains('is-unlocked') && !ccPanel.classList.contains('cc-open')) {
+            if (isPowerOn && phone.classList.contains('is-unlocked')) {
                 homeTimer = setTimeout(() => {
                     phone.classList.add('recents-view');
-                    checkRunningApps();
+                    if(isRunning.settings || isRunning.store || isRunning.flappy) phone.classList.add('has-apps');
                 }, 600);
             }
         }
 
         function handleHomeEnd() {
             clearTimeout(homeTimer);
-            if (!phone.classList.contains('recents-view')) { handleHomeBar(); }
-        }
-
-        function checkRunningApps() {
-            if(isRunning.settings || isRunning.store || isRunning.flappy) phone.classList.add('has-apps');
-            else phone.classList.remove('has-apps');
-            settingsApp.classList.toggle('is-running', isRunning.settings);
-            storeApp.classList.toggle('is-running', isRunning.store);
-            flappyApp.classList.toggle('is-running', isRunning.flappy);
-        }
-
-        function unlockPhone() {
-            if(activePin) document.getElementById('pinPad').style.display = 'flex';
-            else {
-                if(!phone.classList.contains('is-unlocked')) playSfx(soundUnlock);
-                phone.classList.add('is-unlocked');
+            if (!phone.classList.contains('recents-view')) {
+                if (!phone.classList.contains('is-unlocked')) unlockByFingerprint();
+                else phone.classList.remove('open');
             }
         }
 
-        function unlockByFingerprint() {
-            playSfx(soundUnlock);
-            phone.classList.add('is-unlocked');
-            closePinPad();
-        }
-
-        function exitRecentsToApp() { phone.classList.remove('recents-view'); phone.classList.add('open'); }
         function exitRecentsToHome() { phone.classList.remove('recents-view'); }
-        
-        function killApp() {
-            phone.classList.remove('open');
-            isRunning.settings = isRunning.store = isRunning.flappy = false;
-            phone.classList.remove('has-apps');
-        }
-
-        function handleHomeBar() { 
-            if (ccPanel.classList.contains('cc-open')) return toggleCC(false);
-            if (phone.classList.contains('recents-view')) return phone.classList.remove('recents-view');
-            if (isPowerOn && !phone.classList.contains('is-unlocked')) unlockPhone();
-            else phone.classList.remove('open'); 
-        }
+        function killApp() { phone.classList.remove('open', 'has-apps'); isRunning = {settings:false, store:false, flappy:false}; }
 
         function setupDrag(e, el, type) {
-            if (!phone.classList.contains('is-unlocked') || phone.classList.contains('open') || phone.classList.contains('recents-view') || ccPanel.classList.contains('cc-open')) return;
+            if (!isPowerOn || phone.classList.contains('open')) return;
             let moved = false;
-            let longPress = setTimeout(() => {
-                if(!moved && type === 'flappy') el.querySelector('.uninstall-btn').style.display = 'flex';
-            }, 1000);
-
             const isTouch = e.type === 'touchstart';
             const startX = isTouch ? e.touches[0].clientX : e.clientX;
             const startY = isTouch ? e.touches[0].clientY : e.clientY;
             const initX = el.offsetLeft, initY = el.offsetTop;
 
             const move = (ev) => {
+                moved = true;
                 const curX = isTouch ? ev.touches[0].clientX : ev.clientX;
                 const curY = isTouch ? ev.touches[0].clientY : ev.clientY;
-                if (Math.abs(curX - startX) > 5 || Math.abs(curY - startY) > 5) moved = true;
-                el.style.left = Math.max(10, Math.min(initX + (curX - startX), 210)) + 'px';
-                el.style.top = Math.max(40, Math.min(initY + (curY - startY), 480)) + 'px';
+                el.style.left = (initX + (curX - startX)) + 'px';
+                el.style.top = (initY + (curY - startY)) + 'px';
             };
 
-            const stop = () => { 
-                clearTimeout(longPress);
-                document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', move); 
-                document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stop); 
-                if (!moved) { 
-                    isRunning[type] = true;
-                    openAppUI(type);
-                } 
+            const stop = () => {
+                document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', move);
+                document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stop);
+                if (!moved) { isRunning[type] = true; openAppUI(type); }
             };
-            document.addEventListener(isTouch ? 'touchmove' : 'mousemove', move); 
+            document.addEventListener(isTouch ? 'touchmove' : 'mousemove', move);
             document.addEventListener(isTouch ? 'touchend' : 'mouseup', stop);
         }
 
         function openAppUI(type) {
             phone.classList.add('open');
             document.querySelectorAll('.app').forEach(a => a.style.display = 'none');
-            const target = (type === 'settings') ? settingsApp : (type === 'store' ? storeApp : flappyApp);
-            target.style.display = 'flex';
-            if(type === 'flappy') startFlappy();
+            if(type === 'settings') document.getElementById('settingsApp').style.display = 'flex';
+            if(type === 'store') document.getElementById('storeApp').style.display = 'flex';
+            if(type === 'flappy') { document.getElementById('flappyApp').style.display = 'flex'; startFlappy(); }
         }
 
-        /* NEW: Flappy Game Logic */
         function installGame() {
             const btn = document.getElementById('installBtn');
             btn.innerText = "Installing...";
-            btn.disabled = true;
             setTimeout(() => {
                 document.getElementById('flappyBtn').style.display = 'flex';
                 btn.innerText = "Installed";
-                isRunning.store = false;
-                phone.classList.remove('open');
             }, 5000);
         }
 
         function deleteGame(e) {
             e.stopPropagation();
             document.getElementById('flappyBtn').style.display = 'none';
-            document.getElementById('installBtn').innerText = "Install";
-            document.getElementById('installBtn').disabled = false;
         }
 
+        // Flappy Logic
         const cvs = document.getElementById("flappyCanvas"), ctx = cvs.getContext("2d");
         cvs.width = 270; cvs.height = 500;
         let bird = { x: 50, y: 150, v: 0, g: 0.25 };
         function startFlappy() {
             bird.y = 150; bird.v = 0;
             cvs.onclick = () => bird.v = -5;
-            requestAnimationFrame(flappyLoop);
-        }
-        function flappyLoop() {
-            if(!isRunning.flappy || !phone.classList.contains('open')) return;
-            ctx.fillStyle = "#70c5ce"; ctx.fillRect(0,0,cvs.width,cvs.height);
-            bird.v += bird.g; bird.y += bird.v;
-            ctx.fillStyle = "yellow"; ctx.fillRect(bird.x, bird.y, 20, 20);
-            if(bird.y > cvs.height) startFlappy();
-            requestAnimationFrame(flappyLoop);
+            function loop() {
+                if(!isRunning.flappy || !phone.classList.contains('open')) return;
+                ctx.fillStyle = "#70c5ce"; ctx.fillRect(0,0,cvs.width,cvs.height);
+                bird.v += bird.g; bird.y += bird.v;
+                ctx.fillStyle = "yellow"; ctx.fillRect(bird.x, bird.y, 20, 20);
+                if(bird.y < cvs.height) requestAnimationFrame(loop);
+                else startFlappy();
+            }
+            loop();
         }
 
-        /* RESTORED LOGIC */
-        function inputPin(num) {
-            if(currentPinInput.length < 4) {
-                currentPinInput += num; updatePinDots();
-                if(currentPinInput.length === 4) {
-                    if(currentPinInput === activePin) { playSfx(soundUnlock); phone.classList.add('is-unlocked'); closePinPad(); } 
-                    else { const status = document.getElementById('pinStatus'); status.innerText = "Incorrect PIN"; status.style.color = "#ff3b30"; setTimeout(() => { status.innerText = "Enter Passcode"; status.style.color = "white"; currentPinInput = ""; updatePinDots(); }, 1200); }
-                }
-            }
-        }
-        function updatePinDots() { const dots = document.querySelectorAll('#pinDots .dot'); dots.forEach((dot, i) => dot.classList.toggle('active', i < currentPinInput.length)); }
-        function closePinPad() { document.getElementById('pinPad').style.display = 'none'; currentPinInput = ""; updatePinDots(); }
-        function createPin() { let p = prompt("Enter a 4-digit PIN:"); if(p && p.length === 4) { activePin = p; document.getElementById('createPinBtn').style.display = 'none'; document.getElementById('turnOffPinBtn').style.display = 'flex'; } }
-        function turnOffPin() { activePin = null; document.getElementById('createPinBtn').style.display = 'flex'; document.getElementById('turnOffPinBtn').style.display = 'none'; }
+        // Global Helpers
+        function inputPin(n) { currentPinInput += n; if(currentPinInput.length === 4) { if(currentPinInput === activePin) { phone.classList.add('is-unlocked'); document.getElementById('pinPad').style.display = 'none'; } currentPinInput = ""; } }
+        function createPin() { activePin = prompt("Set 4-digit PIN:"); }
         function changeBrightness(v) { document.documentElement.style.setProperty('--bright', v); }
-        function toggleDarkMode() { document.getElementById('mainBody').classList.toggle('dark-mode'); }
-        function setSpd(t) { document.documentElement.style.setProperty('--spd', t); }
-        function toggleCC(o) { if(isPowerOn && phone.classList.contains('is-unlocked')) ccPanel.classList.toggle('cc-open', o); }
-        function showPage(n) { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); document.getElementById('p' + n).style.display = 'block'; }
-        function setFingerprint(visible) { document.getElementById('fp-icon').style.display = visible ? 'flex' : 'none'; }
-        function changeWallpaper(e) { const r = new FileReader(); r.onload = (ev) => { wallpaper.style.backgroundImage = `url('${ev.target.result}')`; }; r.readAsDataURL(e.target.files[0]); }
-        function updateTime() { const now = new Date(); const t = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0'); document.getElementById('clock').innerText = t; document.getElementById('st-time').innerText = t; }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function toggleCC(o) { if(isPowerOn) document.getElementById('ccPanel').classList.toggle('cc-open', o); }
+        function setSpd(s) { document.documentElement.style.setProperty('--spd', s); }
+        function updateTime() { const n = new Date(); const t = n.getHours().toString().padStart(2,'0') + ":" + n.getMinutes().toString().padStart(2,'0'); document.getElementById('clock').innerText = t; document.getElementById('st-time').innerText = t; }
         setInterval(updateTime, 1000); updateTime();
     </script>
 </body>
