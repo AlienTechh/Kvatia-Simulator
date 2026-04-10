@@ -6,12 +6,14 @@
     <title>RandomOS 1.0 Beta</title>
     <style>
         :root {
-            --anim-speed: 0.5s;
+            --anim-speed: 0.4s; /* Slightly faster default for that "Fast" feel */
             /* Theme Variables */
             --bg-color: #f2f2f7;
             --card-bg: white;
             --text-color: #000;
             --status-text: white;
+            /* OriginOS Bezier: Quick start, smooth finish */
+            --ios-bezier: cubic-bezier(0.23, 1, 0.32, 1); 
         }
 
         /* Light Mode Classes (Default) */
@@ -263,7 +265,7 @@
             background-color: #1a1a1a;
             background-image: url('1000005643.jpg');
             background-size: cover; background-position: center;
-            transition: filter var(--anim-speed) ease, transform var(--anim-speed) cubic-bezier(0.2, 0, 0, 1);
+            transition: filter var(--anim-speed) ease, transform var(--anim-speed) var(--ios-bezier);
             z-index: 1;
         }
         .wallpaper.app-active { filter: blur(15px) brightness(0.7); transform: scale(1.1); }
@@ -298,22 +300,23 @@
         }
         .app span { color: white; font-size: 0.7rem; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 
-        /* APP WINDOWS */
+        /* APP WINDOWS - FAST SWITCH OPTIMIZED */
         .app-window {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); /* Theme based */
-            color: var(--text-color); /* Theme based */
+            background: var(--bg-color);
+            color: var(--text-color);
             z-index: 1000;
             border-radius: 38px;
             padding: 60px 25px;
             opacity: 0; 
             pointer-events: none;
-            transform: scale(0);
+            transform: scale(0.1); /* Start smaller for more dynamic expansion */
             transition: 
-                transform var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1), 
-                opacity var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1),
+                transform var(--anim-speed) var(--ios-bezier), 
+                opacity var(--anim-speed) var(--ios-bezier),
                 background 0.3s;
+            will-change: transform, opacity;
         }
         
         .app-window.open { opacity: 1; transform: scale(1); pointer-events: all; }
@@ -364,7 +367,8 @@
         .dev-speed-btn.active { background: #007aff; color: white; }
     </style>
 </head>
-<body class="dark-theme"> <div class="phone">
+<body class="dark-theme"> 
+    <div class="phone">
         <div id="dev-toast">developer options activated</div>
 
         <div class="power-btn" 
@@ -474,8 +478,8 @@
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
                 <h1 style="text-align: center; margin-bottom: 10px;">Animation Speed</h1>
                 <div class="dev-btn-group">
-                    <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('1.2s', 'slow')">Slow</button>
-                    <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.5s', 'normal')">Normal</button>
+                    <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('0.8s', 'slow')">Slow</button>
+                    <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.4s', 'normal')">Normal</button>
                     <button class="dev-speed-btn" id="speed-fast" onclick="setAnimSpeed('0.2s', 'fast')">Fast</button>
                 </div>
             </div>
@@ -496,12 +500,10 @@
             <div id="custom-page" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
                 <h1 style="margin-bottom: 25px;">Customization</h1>
-                
                 <p style="font-size: 0.8rem; margin-bottom: 10px; opacity: 0.7;">Wallpaper</p>
                 <div class="settings-item" onclick="triggerFileSelect()">
                     <span>Change Wallpaper</span>
                 </div>
-
                 <p style="font-size: 0.8rem; margin-top: 20px; margin-bottom: 10px; opacity: 0.7;">System Theme</p>
                 <div class="settings-item" onclick="setTheme('light')">
                     <span>Light Mode</span>
@@ -546,11 +548,11 @@
         let pressStartTime;
         let aboutClicks = 0;
         let isDevMode = false;
+        let lastAppOrigin = { x: '50%', y: '50%' };
 
         const wallpaperLayer = document.getElementById('main-wallpaper');
         const wallpaperInput = document.getElementById('wallpaper-input');
 
-        // THEME LOGIC
         function setTheme(mode) {
             const body = document.body;
             if (mode === 'light') {
@@ -667,15 +669,26 @@
             }, 4500);
         }
 
+        // IMPROVED: OriginOS-style Fast Switch Logic
         function openAppWithOrigin(element, id) {
             const appWindow = document.getElementById(id);
             const rect = element.getBoundingClientRect();
             const containerRect = document.querySelector('.screen-container').getBoundingClientRect();
+            
+            // Calculate origin relative to the screen container
             const originX = (rect.left + rect.width / 2) - containerRect.left;
             const originY = (rect.top + rect.height / 2) - containerRect.top;
-            appWindow.style.transformOrigin = `${originX}px ${originY}px`;
-            appWindow.classList.add('open');
-            wallpaperLayer.classList.add('app-active');
+            
+            lastAppOrigin = { x: `${originX}px`, y: `${originY}px` };
+
+            // Apply origin and open
+            appWindow.style.transformOrigin = `${lastAppOrigin.x} ${lastAppOrigin.y}`;
+            
+            // Small timeout to ensure origin is set before transition starts
+            requestAnimationFrame(() => {
+                appWindow.classList.add('open');
+                wallpaperLayer.classList.add('app-active');
+            });
         }
 
         function toggleCC(show) {
@@ -711,20 +724,21 @@
                 lock.classList.replace('active', 'hidden');
                 document.getElementById('home-screen').classList.replace('hidden', 'active');
             } else {
-                document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
+                // When closing, ensure they scale back to their specific origin
+                document.querySelectorAll('.app-window').forEach(win => {
+                    win.classList.remove('open');
+                });
                 wallpaperLayer.classList.remove('app-active');
             }
             updateNavVisibility();
         }
 
         function handleBackAction() {
-            // Updated to handle closing the new empty apps too
             const allApps = document.querySelectorAll('.app-window');
             let backProcessed = false;
             
             allApps.forEach(win => {
                 if(win.classList.contains('open')) {
-                    // Check if it's a subpage of settings
                     const subpages = ['nav-settings', 'custom-page', 'about-page', 'dev-settings'];
                     if(subpages.includes(win.id)) {
                         showSubPage('settings-main');
@@ -739,8 +753,15 @@
         }
 
         function showSubPage(id) {
-            document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
-            document.getElementById(id).classList.add('open');
+            // Subpages keep the current transform origin for consistency
+            const currentWin = document.querySelector('.app-window.open');
+            const targetWin = document.getElementById(id);
+            
+            if(currentWin) {
+                targetWin.style.transformOrigin = currentWin.style.transformOrigin;
+                currentWin.classList.remove('open');
+            }
+            targetWin.classList.add('open');
         }
 
         function triggerFileSelect() { wallpaperInput.click(); }
