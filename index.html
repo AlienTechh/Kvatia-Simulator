@@ -6,7 +6,28 @@
     <title>RandomOS 1.0 Beta</title>
     <style>
         :root {
-            --anim-speed: 0.5s; /* Default Normal */
+            --anim-speed: 0.5s;
+            /* Theme Variables */
+            --bg-color: #f2f2f7;
+            --card-bg: white;
+            --text-color: #000;
+            --status-text: white;
+        }
+
+        /* Light Mode Classes (Default) */
+        .light-theme {
+            --bg-color: #f2f2f7;
+            --card-bg: white;
+            --text-color: #000;
+            --status-text: #000;
+        }
+
+        /* Dark Mode Classes */
+        .dark-theme {
+            --bg-color: #1c1c1e;
+            --card-bg: #2c2c2e;
+            --text-color: #ffffff;
+            --status-text: white;
         }
 
         * { 
@@ -57,7 +78,8 @@
             justify-content: space-between;
             align-items: center;
             z-index: 4500;
-            color: white;
+            color: var(--status-text); /* Dynamic color */
+            transition: color 0.3s;
             font-size: 0.75rem;
             font-weight: 600;
         }
@@ -66,7 +88,7 @@
         .battery-icon {
             width: 20px;
             height: 10px;
-            border: 1px solid white;
+            border: 1px solid var(--status-text);
             border-radius: 3px;
             position: relative;
         }
@@ -74,7 +96,7 @@
             position: absolute;
             left: 1px; top: 1px;
             height: 6px; width: 80%;
-            background: white;
+            background: var(--status-text);
         }
 
         .punch-hole {
@@ -134,7 +156,6 @@
             overflow: hidden;
         }
 
-        /* GALAXY BOOT ANIMATION CSS */
         .orbit-container {
             position: relative;
             width: 200px;
@@ -281,7 +302,9 @@
         .app-window {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #f2f2f7; z-index: 1000;
+            background: var(--bg-color); /* Theme based */
+            color: var(--text-color); /* Theme based */
+            z-index: 1000;
             border-radius: 38px;
             padding: 60px 25px;
             opacity: 0; 
@@ -289,44 +312,22 @@
             transform: scale(0);
             transition: 
                 transform var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1), 
-                opacity var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1);
+                opacity var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1),
+                background 0.3s;
         }
         
         .app-window.open { opacity: 1; transform: scale(1); pointer-events: all; }
 
         .settings-item {
-            background: white; padding: 18px; border-radius: 15px; margin-bottom: 12px;
+            background: var(--card-bg); /* Theme based */
+            padding: 18px; border-radius: 15px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
-            color: #000; font-weight: 600; cursor: pointer;
+            color: var(--text-color); /* Theme based */
+            font-weight: 600; cursor: pointer;
+            transition: background 0.3s;
         }
 
         .back-btn { color: #007aff; font-weight: 700; margin-bottom: 25px; cursor: pointer; }
-
-        /* ABOUT PAGE SPECIFIC */
-        #about-content {
-            height: 80%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 40px 0;
-            text-align: center;
-        }
-        .about-main-text {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #1c1c1e;
-            margin-top: 100px;
-            cursor: pointer;
-        }
-        .about-footer {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #8e8e93;
-            padding: 0 10px;
-        }
 
         #nav-container {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 45px;
@@ -346,47 +347,24 @@
             position: absolute; bottom: 0; width: 100%; height: 100%; background: transparent; cursor: pointer;
         }
 
-        /* TOAST NOTIFICATION */
         #dev-toast {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
+            position: absolute; bottom: 80px; left: 50%;
             transform: translateX(-50%);
             background: rgba(30, 30, 30, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 9999;
-            pointer-events: none;
+            color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 0.8rem; opacity: 0; transition: opacity 0.3s;
+            z-index: 9999; pointer-events: none;
         }
 
-        /* DEV OPTIONS UI */
-        .dev-btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
+        .dev-btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .dev-speed-btn {
-            flex: 1;
-            padding: 15px 10px;
-            border-radius: 12px;
-            border: none;
-            background: #e5e5ea;
-            font-weight: bold;
-            cursor: pointer;
+            flex: 1; padding: 15px 10px; border-radius: 12px; border: none;
+            background: #e5e5ea; font-weight: bold; cursor: pointer;
         }
-        .dev-speed-btn.active {
-            background: #007aff;
-            color: white;
-        }
+        .dev-speed-btn.active { background: #007aff; color: white; }
     </style>
 </head>
-<body>
-
-    <div class="phone">
+<body class="dark-theme"> <div class="phone">
         <div id="dev-toast">developer options activated</div>
 
         <div class="power-btn" 
@@ -475,8 +453,6 @@
             <div id="dev-settings" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
                 <h1 style="text-align: center; margin-bottom: 10px;">Animation Speed</h1>
-                <p style="text-align: center; color: #8e8e93; font-size: 0.8rem; margin-bottom: 20px;">Adjust the system transition speed</p>
-                
                 <div class="dev-btn-group">
                     <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('1.2s', 'slow')">Slow</button>
                     <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.5s', 'normal')">Normal</button>
@@ -499,17 +475,29 @@
 
             <div id="custom-page" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
-                <h1 style="margin-bottom: 25px;">Appearance</h1>
+                <h1 style="margin-bottom: 25px;">Customization</h1>
+                
+                <p style="font-size: 0.8rem; margin-bottom: 10px; opacity: 0.7;">Wallpaper</p>
                 <div class="settings-item" onclick="triggerFileSelect()">
                     <span>Change Wallpaper</span>
+                </div>
+
+                <p style="font-size: 0.8rem; margin-top: 20px; margin-bottom: 10px; opacity: 0.7;">System Theme</p>
+                <div class="settings-item" onclick="setTheme('light')">
+                    <span>Light Mode</span>
+                    <span id="check-light" style="display:none;">✓</span>
+                </div>
+                <div class="settings-item" onclick="setTheme('dark')">
+                    <span>Dark Mode</span>
+                    <span id="check-dark">✓</span>
                 </div>
             </div>
 
             <div id="about-page" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
-                <div id="about-content">
-                    <div class="about-main-text" onclick="handleAboutClick()">RandomOS 1.0 Beta</div>
-                    <div class="about-footer">
+                <div id="about-content" style="height: 80%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 0; text-align: center;">
+                    <div class="about-main-text" style="font-size: 1.5rem; font-weight: 800; margin-top: 100px; cursor: pointer;" onclick="handleAboutClick()">RandomOS 1.0 Beta</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; font-size: 0.85rem; color: #8e8e93; padding: 0 10px;">
                         <span>Phone Name</span>
                         <span>rPhone 1 pro</span>
                     </div>
@@ -542,6 +530,22 @@
         const wallpaperLayer = document.getElementById('main-wallpaper');
         const wallpaperInput = document.getElementById('wallpaper-input');
 
+        // THEME LOGIC
+        function setTheme(mode) {
+            const body = document.body;
+            if (mode === 'light') {
+                body.classList.remove('dark-theme');
+                body.classList.add('light-theme');
+                document.getElementById('check-light').style.display = 'block';
+                document.getElementById('check-dark').style.display = 'none';
+            } else {
+                body.classList.remove('light-theme');
+                body.classList.add('dark-theme');
+                document.getElementById('check-light').style.display = 'none';
+                document.getElementById('check-dark').style.display = 'block';
+            }
+        }
+
         function handleAboutClick() {
             if (isDevMode) return;
             aboutClicks++;
@@ -554,11 +558,8 @@
             }
         }
 
-        // Animation Speed Logic
         function setAnimSpeed(value, type) {
             document.documentElement.style.setProperty('--anim-speed', value);
-            
-            // UI Update for buttons
             document.querySelectorAll('.dev-speed-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('speed-' + type).classList.add('active');
         }
