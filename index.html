@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RandomOS 1.0 Beta</title>
+    <title>RandomOS 1.0 Beta - iOS 26 Edition</title>
     <style>
         :root {
-            /* Improved speed and a "Premium" easing curve (Apple/Samsung style) */
-            --anim-speed: 0.5s;
-            --premium-curve: cubic-bezier(0.32, 0.72, 0, 1);
+            /* iOS 26 "Snappy" Speed */
+            --anim-speed: 0.45s;
+            /* iOS signature curve: fast start, soft landing */
+            --ios-curve: cubic-bezier(0.32, 0.72, 0, 1);
             
-            /* Theme Variables */
             --bg-color: #f2f2f7;
             --card-bg: rgba(255, 255, 255, 0.8);
             --text-color: #000;
@@ -18,7 +18,6 @@
             --glass-border: rgba(0, 0, 0, 0.1);
         }
 
-        /* Light Mode Classes (Default) */
         .light-theme {
             --bg-color: #f2f2f7;
             --card-bg: rgba(255, 255, 255, 0.9);
@@ -27,7 +26,6 @@
             --glass-border: rgba(0, 0, 0, 0.05);
         }
 
-        /* Dark Mode Classes */
         .dark-theme {
             --bg-color: #1c1c1e;
             --card-bg: rgba(44, 44, 46, 0.8);
@@ -120,7 +118,6 @@
             border-radius: 2px;
         }
 
-        /* DYNAMIC ISLAND */
         .punch-hole {
             position: absolute;
             top: 10px;
@@ -175,7 +172,7 @@
             box-shadow: inset 1px 0 2px rgba(255,255,255,0.2);
         }
 
-        /* POWER MENU & GALAXY BOOT */
+        /* POWER MENU & BOOT */
         #power-menu {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -263,7 +260,6 @@
             100% { opacity: 1; transform: scale(1); filter: blur(0); }
         }
 
-        /* OVERLAYS */
         #brightness-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -290,7 +286,7 @@
             -webkit-backdrop-filter: blur(35px);
             z-index: 4800;
             transform: translateY(-100%);
-            transition: transform 0.4s var(--premium-curve);
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             padding: 65px 20px;
             display: flex; flex-direction: column; gap: 20px;
         }
@@ -333,26 +329,23 @@
             position: absolute;
             width: 100%; height: 100%;
             background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
-            background-image: url('1000005643.jpg');
+            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
             background-size: cover; background-position: center;
-            transition: filter var(--anim-speed) ease, transform var(--anim-speed) var(--premium-curve);
+            transition: filter var(--anim-speed) ease, transform var(--anim-speed) var(--ios-curve);
             z-index: 1;
         }
-        .dark-theme .wallpaper {
-            background: linear-gradient(120deg, #2b5876 0%, #4e4376 100%);
-        }
-        .wallpaper.app-active { filter: blur(20px) brightness(0.6); transform: scale(1.1); }
+        .wallpaper.app-active { filter: blur(0px) brightness(0.8); transform: scale(1.15); }
 
         /* SCREENS */
         .screen {
             position: absolute;
             width: 100%; height: 100%;
             z-index: 5;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.4s ease, transform 0.4s var(--ios-curve);
         }
 
-        .hidden { opacity: 0; pointer-events: none; }
-        .active { opacity: 1; pointer-events: all; }
+        .hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .active { opacity: 1; pointer-events: all; transform: scale(1); }
 
         #lock-screen {
             display: flex; flex-direction: column;
@@ -362,18 +355,25 @@
         .date { font-size: 1.1rem; margin-top: -5px; opacity: 0.9; font-weight: 500; text-shadow: 0 1px 5px rgba(0,0,0,0.3); }
 
         #home-screen { padding: 60px 20px; }
-        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px 15px; }
-        .app { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.1s; }
-        .app:active { transform: scale(0.9); }
+        .app-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 25px 15px; 
+            transition: transform var(--anim-speed) var(--ios-curve);
+        }
+        .app-grid.zoom-out { transform: scale(0.9); opacity: 0.5; }
+
+        .app { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .app:active { transform: scale(0.85); }
         .icon {
             width: 58px; height: 58px; border-radius: 14px; margin-bottom: 8px;
             display: flex; justify-content: center; align-items: center;
-            font-size: 1.8rem; box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+            font-size: 1.8rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             background: linear-gradient(135deg, #ffffff, #e6e6e6);
         }
         .app span { color: white; font-size: 0.75rem; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.5); letter-spacing: 0.2px;}
 
-        /* APP WINDOWS - IMPROVED ANIMATION */
+        /* --- iOS 26 APP WINDOW ANIMATIONS --- */
         .app-window {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -384,17 +384,33 @@
             padding: 60px 25px;
             opacity: 0; 
             pointer-events: none;
-            /* Animation starts from slightly below and scaled down for a "physical" feel */
-            transform: scale(0.92) translateY(30px);
+            
+            /* The secret sauce: scale from the icon center */
+            transform: scale(0.1); 
+            visibility: hidden;
             transition: 
-                transform var(--anim-speed) var(--premium-curve), 
+                transform var(--anim-speed) var(--ios-curve), 
                 opacity var(--anim-speed) ease,
-                background 0.3s;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+                visibility var(--anim-speed),
+                border-radius var(--anim-speed) var(--ios-curve);
+            will-change: transform, opacity;
         }
         
-        .app-window.open { opacity: 1; transform: scale(1) translateY(0); pointer-events: all; }
+        .app-window.open { 
+            opacity: 1; 
+            transform: scale(1); 
+            pointer-events: all; 
+            visibility: visible;
+            border-radius: 36px; 
+        }
+
+        /* Shrink back animation */
+        .app-window.closing {
+            opacity: 0;
+            transform: scale(0.1);
+            pointer-events: none;
+            border-radius: 50px;
+        }
 
         .settings-item {
             background: var(--card-bg); 
@@ -404,7 +420,6 @@
             font-weight: 500; cursor: pointer;
             transition: background 0.2s, transform 0.1s;
             border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         }
         .settings-item:active { transform: scale(0.98); background: rgba(128, 128, 128, 0.2); }
 
@@ -420,7 +435,9 @@
             width: 130px; height: 5px; background: rgba(255,255,255,0.9);
             border-radius: 10px; cursor: pointer;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            transition: width 0.3s, background 0.3s;
         }
+        #home-bar:active { width: 150px; background: rgba(255,255,255,1); }
         .light-theme #home-bar { background: rgba(0,0,0,0.8); }
 
         #three-buttons { width: 100%; display: none; justify-content: space-around; align-items: center; }
@@ -438,22 +455,12 @@
             font-size: 0.85rem; font-weight: 600; opacity: 0; transition: opacity 0.3s;
             z-index: 9999; pointer-events: none;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
         }
-
-        .dev-btn-group { display: flex; gap: 12px; margin-top: 20px; }
-        .dev-speed-btn {
-            flex: 1; padding: 15px 10px; border-radius: 14px; border: none;
-            background: var(--card-bg); color: var(--text-color); font-weight: 600; cursor: pointer;
-            border: 1px solid var(--glass-border);
-            transition: background 0.3s;
-        }
-        .dev-speed-btn.active { background: #007aff; color: white; border-color: #007aff; }
     </style>
 </head>
 <body class="dark-theme"> 
     <div class="phone">
-        <div id="dev-toast">developer options activated</div>
+        <div id="dev-toast">Developer options activated</div>
 
         <div class="power-btn" 
              onmousedown="startPowerTimer(event)" 
@@ -503,7 +510,7 @@
                     <label style="font-size: 0.85rem; font-weight: 600;">Brightness</label>
                     <input type="range" min="0" max="100" value="100" oninput="adjustBrightness(this.value)">
                 </div>
-                <div style="flex-grow: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px; color: rgba(255,255,255,0.6); font-size: 2rem; cursor: pointer; transition: transform 0.2s;" onclick="toggleCC(false)">︿</div>
+                <div style="flex-grow: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px; color: rgba(255,255,255,0.6); font-size: 2rem; cursor: pointer;" onclick="toggleCC(false)">︿</div>
             </div>
 
             <div id="lock-screen" class="screen active">
@@ -512,18 +519,18 @@
             </div>
 
             <div id="home-screen" class="screen hidden">
-                <div class="app-grid">
+                <div class="app-grid" id="main-app-grid">
                     <div class="app" onclick="openAppWithOrigin(this, 'settings-main')">
                         <div class="icon">⚙️</div>
                         <span>Settings</span>
                     </div>
                     <div class="app" onclick="openAppWithOrigin(this, 'empty-app-1')">
                         <div class="icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">👻</div>
-                        <span>Empty App 1</span>
+                        <span>Ghost</span>
                     </div>
                     <div class="app" onclick="openAppWithOrigin(this, 'empty-app-2')">
                         <div class="icon" style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);">🍃</div>
-                        <span>Empty App 2</span>
+                        <span>Nature</span>
                     </div>
                 </div>
             </div>
@@ -554,20 +561,6 @@
                     <span>About</span>
                     <span style="opacity: 0.5;">❯</span>
                 </div>
-                <div id="dev-opt-item" class="settings-item" style="display:none;" onclick="showSubPage('dev-settings')">
-                    <span>Developer Options</span>
-                    <span style="opacity: 0.5;">❯</span>
-                </div>
-            </div>
-
-            <div id="dev-settings" class="app-window">
-                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Settings</div>
-                <h2 style="text-align: center; margin-bottom: 10px; font-weight: 600;">Animation Speed</h2>
-                <div class="dev-btn-group">
-                    <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('1.2s', 'slow')">Slow</button>
-                    <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.5s', 'normal')">Normal</button>
-                    <button class="dev-speed-btn" id="speed-fast" onclick="setAnimSpeed('0.2s', 'fast')">Fast</button>
-                </div>
             </div>
 
             <div id="nav-settings" class="app-window">
@@ -583,30 +576,10 @@
                 </div>
             </div>
 
-            <div id="custom-page" class="app-window">
-                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Settings</div>
-                <h1 style="margin-bottom: 25px; font-weight: 700;">Customization</h1>
-                
-                <p style="font-size: 0.85rem; margin-bottom: 10px; opacity: 0.6; font-weight: 600; text-transform: uppercase;">Wallpaper</p>
-                <div class="settings-item" onclick="triggerFileSelect()">
-                    <span style="color: #007aff;">Choose New Wallpaper</span>
-                </div>
-
-                <p style="font-size: 0.85rem; margin-top: 30px; margin-bottom: 10px; opacity: 0.6; font-weight: 600; text-transform: uppercase;">System Theme</p>
-                <div class="settings-item" onclick="setTheme('light')">
-                    <span>Light Mode</span>
-                    <span id="check-light" style="display:none; color: #007aff; font-weight: bold;">✓</span>
-                </div>
-                <div class="settings-item" onclick="setTheme('dark')">
-                    <span>Dark Mode</span>
-                    <span id="check-dark" style="color: #007aff; font-weight: bold;">✓</span>
-                </div>
-            </div>
-
             <div id="about-page" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Settings</div>
                 <div id="about-content" style="height: 80%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 0; text-align: center;">
-                    <div class="about-main-text" style="font-size: 1.8rem; font-weight: 800; margin-top: 100px; cursor: pointer;" onclick="handleAboutClick()">RandomOS 1.0 Beta</div>
+                    <div class="about-main-text" style="font-size: 1.8rem; font-weight: 800; margin-top: 100px;">RandomOS 1.0</div>
                     <div style="width: 100%; display: flex; justify-content: space-between; font-size: 0.9rem; color: #8e8e93; padding: 0 10px;">
                         <span>Phone Name</span>
                         <span style="color: var(--text-color); font-weight: 500;">rPhone 1 Pro</span>
@@ -616,7 +589,7 @@
 
             <div id="nav-container">
                 <div id="unlock-trigger" onclick="handleHomeAction()"></div>
-                <div id="home-bar" onclick="handleHomeAction()" style="display:none;"></div>
+                <div id="home-bar" onclick="handleHomeAction()" style="display:block;"></div>
                 <div id="three-buttons">
                     <div class="nav-btn" onclick="handleBackAction()">◂</div>
                     <div class="nav-btn" onclick="handleHomeAction()">●</div>
@@ -626,27 +599,22 @@
         </div>
     </div>
 
-    <input type="file" id="wallpaper-input" hidden accept="image/*">
-
     <script>
         let isPhoneSleeping = false; 
         let isCompletelyShutdown = false; 
         let currentNavMode = 'swipe';
         let powerTimer;
         let pressStartTime;
-        let aboutClicks = 0;
-        let isDevMode = false;
+        let activeAppId = null;
+        let originElement = null;
 
         const wallpaperLayer = document.getElementById('main-wallpaper');
-        const wallpaperInput = document.getElementById('wallpaper-input');
 
-        // UPDATED CLOCK - FORCED TO ENGLISH
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', hour12: false});
-            // Changed undefined to 'en-US' to lock language
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-            const dateString = now.toLocaleDateString('en-US', dateOptions);
+            const dateString = now.toLocaleDateString(undefined, dateOptions);
             
             document.getElementById('status-time').innerText = timeString;
             document.getElementById('clock-large').innerText = timeString;
@@ -655,230 +623,134 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // APP LOGIC - REWRITTEN TO FIX CENTER POP
-        function openAppWithOrigin(element, appId) {
-            const appWin = document.getElementById(appId);
+        /* --- iOS 26 SNAPPY ANIMATION LOGIC --- */
+        function openAppWithOrigin(el, appId) {
+            const appWindow = document.getElementById(appId);
+            const iconRect = el.getBoundingClientRect();
+            const containerRect = document.querySelector('.screen-container').getBoundingClientRect();
+
+            // Calculate center of icon relative to screen
+            const originX = iconRect.left + (iconRect.width / 2) - containerRect.left;
+            const originY = iconRect.top + (iconRect.height / 2) - containerRect.top;
+
+            // Set transform origin so it expands FROM the icon
+            appWindow.style.transformOrigin = `${originX}px ${originY}px`;
             
-            // Premium animation logic: slightly blur wallpaper
+            originElement = el;
+            activeAppId = appId;
+
+            // Trigger Animation
+            appWindow.classList.remove('closing');
+            appWindow.classList.add('open');
             wallpaperLayer.classList.add('app-active');
-            
-            // Open the specific window
-            appWin.classList.add('open');
-            
-            // Hide home screen interaction
-            document.getElementById('home-screen').classList.replace('active', 'hidden');
-            
-            updateNavVisibility();
+            document.getElementById('main-app-grid').classList.add('zoom-out');
         }
 
-        // NAVIGATION LOGIC
         function handleHomeAction() {
             if (document.getElementById('lock-screen').classList.contains('active')) {
                 unlockPhone();
-                return;
+            } else if (activeAppId) {
+                closeActiveApp();
             }
-            // Close all windows
-            document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
-            wallpaperLayer.classList.remove('app-active');
+        }
+
+        function closeActiveApp() {
+            if (!activeAppId) return;
+            const appWindow = document.getElementById(activeAppId);
             
-            document.getElementById('home-screen').classList.replace('hidden', 'active');
-            updateNavVisibility();
+            appWindow.classList.add('closing');
+            appWindow.classList.remove('open');
+            
+            wallpaperLayer.classList.remove('app-active');
+            document.getElementById('main-app-grid').classList.remove('zoom-out');
+
+            setTimeout(() => {
+                appWindow.classList.remove('closing');
+                activeAppId = null;
+            }, 500); // Matches --anim-speed
         }
 
         function unlockPhone() {
             document.getElementById('lock-screen').classList.replace('active', 'hidden');
             document.getElementById('home-screen').classList.replace('hidden', 'active');
-            updateNavVisibility();
         }
 
-        function updateNavVisibility() {
-            const isLockScreen = document.getElementById('lock-screen').classList.contains('active');
-            const homeBar = document.getElementById('home-bar');
-            const threeBtn = document.getElementById('three-buttons');
-            const unlockTrig = document.getElementById('unlock-trigger');
+        /* --- SYSTEM LOGIC --- */
+        function startPowerTimer(e) {
+            pressStartTime = Date.now();
+            powerTimer = setTimeout(() => {
+                if (isCompletelyShutdown) bootSystem();
+                else showPowerMenu();
+            }, 1500);
+        }
 
-            if (isLockScreen) {
-                homeBar.style.display = 'none';
-                threeBtn.style.display = 'none';
-                unlockTrig.style.display = 'block';
-            } else {
-                unlockTrig.style.display = 'none';
-                if (currentNavMode === 'swipe') {
-                    homeBar.style.display = 'block';
-                    threeBtn.style.display = 'none';
-                } else {
-                    homeBar.style.display = 'none';
-                    threeBtn.style.display = 'flex';
-                }
-            }
+        function endPowerTimer(e) {
+            const duration = Date.now() - pressStartTime;
+            clearTimeout(powerTimer);
+            if (duration < 1500 && !isCompletelyShutdown) toggleSleep();
+        }
+
+        function toggleSleep() {
+            isPhoneSleeping = !isPhoneSleeping;
+            const overlay = document.getElementById('black-overlay');
+            overlay.style.display = isPhoneSleeping ? 'block' : 'none';
+            overlay.style.opacity = isPhoneSleeping ? '1' : '0';
+            if (!isPhoneSleeping) resetToLockscreen();
+        }
+
+        function resetToLockscreen() {
+            closeActiveApp();
+            document.getElementById('home-screen').classList.replace('active', 'hidden');
+            document.getElementById('lock-screen').classList.replace('hidden', 'active');
+        }
+
+        function showPowerMenu() { document.getElementById('power-menu').style.display = 'flex'; }
+        function closePowerMenu() { document.getElementById('power-menu').style.display = 'none'; }
+
+        function systemShutdown() {
+            closePowerMenu();
+            isCompletelyShutdown = true;
+            document.getElementById('black-overlay').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '1';
+        }
+
+        function bootSystem() {
+            isCompletelyShutdown = false;
+            document.getElementById('boot-screen').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.display = 'none';
+                document.getElementById('black-overlay').style.display = 'none';
+                resetToLockscreen();
+            }, 4000);
+        }
+
+        function toggleCC(show) {
+            document.getElementById('control-center').classList.toggle('open', show);
         }
 
         function showSubPage(pageId) {
+            // Simple subpage logic: hide current, show new
             document.querySelectorAll('.app-window').forEach(win => {
-                if(win.id !== pageId) win.classList.remove('open');
+                if(win.id !== activeAppId) win.classList.remove('open');
             });
             document.getElementById(pageId).classList.add('open');
         }
 
         function setNavStyle(style) {
             currentNavMode = style;
+            document.getElementById('home-bar').style.display = style === 'swipe' ? 'block' : 'none';
+            document.getElementById('three-buttons').style.display = style === 'buttons' ? 'flex' : 'none';
             document.getElementById('check-swipe').style.display = style === 'swipe' ? 'block' : 'none';
             document.getElementById('check-buttons').style.display = style === 'buttons' ? 'block' : 'none';
-            updateNavVisibility();
         }
 
-        // BATTERY & ISLAND
-        async function initBattery() {
-            if ('getBattery' in navigator) {
-                const battery = await navigator.getBattery();
-                function updateIsland() {
-                    const level = Math.round(battery.level * 100);
-                    const island = document.getElementById('island');
-                    const text = document.getElementById('island-text');
-                    const fill = document.getElementById('battery-fill');
-                    fill.style.width = level + "%";
-                    if (battery.charging) {
-                        text.innerText = `Charging ${level}%`;
-                        island.classList.add('charging-island');
-                        setTimeout(() => island.classList.remove('charging-island'), 3000);
-                    }
-                }
-                battery.addEventListener('chargingchange', updateIsland);
-                battery.addEventListener('levelchange', updateIsland);
-                updateIsland(); 
-            }
-        }
-        initBattery();
-
-        function toggleCC(show) {
-            const cc = document.getElementById('control-center');
-            if(show) cc.classList.add('open');
-            else cc.classList.remove('open');
+        function adjustBrightness(val) {
+            document.getElementById('brightness-overlay').style.opacity = (100 - val) / 100;
         }
 
         function toggleCCBtn(id) {
             document.getElementById(id).classList.toggle('active');
         }
-
-        function adjustBrightness(val) {
-            document.getElementById('brightness-overlay').style.opacity = (1 - (val/100)) * 0.8;
-        }
-
-        function setTheme(mode) {
-            const body = document.body;
-            if (mode === 'light') {
-                body.classList.remove('dark-theme');
-                body.classList.add('light-theme');
-                document.getElementById('check-light').style.display = 'block';
-                document.getElementById('check-dark').style.display = 'none';
-            } else {
-                body.classList.remove('light-theme');
-                body.classList.add('dark-theme');
-                document.getElementById('check-light').style.display = 'none';
-                document.getElementById('check-dark').style.display = 'block';
-            }
-        }
-
-        function triggerFileSelect() { wallpaperInput.click(); }
-        wallpaperInput.onchange = e => {
-            const file = e.target.files[0];
-            if(file) {
-                const url = URL.createObjectURL(file);
-                wallpaperLayer.style.backgroundImage = `url(${url})`;
-            }
-        };
-
-        function handleAboutClick() {
-            if (isDevMode) return;
-            aboutClicks++;
-            if (aboutClicks >= 4) {
-                isDevMode = true;
-                const toast = document.getElementById('dev-toast');
-                toast.style.opacity = '1';
-                setTimeout(() => toast.style.opacity = '0', 2000);
-                document.getElementById('dev-opt-item').style.display = 'flex';
-            }
-        }
-
-        function setAnimSpeed(value, type) {
-            document.documentElement.style.setProperty('--anim-speed', value);
-            document.querySelectorAll('.dev-speed-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('speed-' + type).classList.add('active');
-        }
-
-        function startPowerTimer(e) {
-            pressStartTime = Date.now();
-            powerTimer = setTimeout(() => {
-                if (isCompletelyShutdown) bootSystem();
-                else showPowerMenu();
-            }, 2000);
-        }
-
-        function endPowerTimer(e) {
-            const duration = Date.now() - pressStartTime;
-            clearTimeout(powerTimer);
-            if (duration < 2000) {
-                if (isCompletelyShutdown) return; 
-                toggleSleep();
-            }
-        }
-
-        function toggleSleep() {
-            isPhoneSleeping = !isPhoneSleeping;
-            const overlay = document.getElementById('black-overlay');
-            if (isPhoneSleeping) {
-                overlay.style.display = 'block';
-                setTimeout(() => overlay.style.opacity = '1', 10);
-            } else {
-                resetToLockscreen();
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 600);
-            }
-        }
-
-        function resetToLockscreen() {
-            document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
-            wallpaperLayer.classList.remove('app-active');
-            document.getElementById('home-screen').classList.replace('active', 'hidden');
-            document.getElementById('lock-screen').classList.replace('hidden', 'active');
-            updateNavVisibility();
-        }
-
-        function showPowerMenu() {
-            if (isPhoneSleeping) toggleSleep();
-            document.getElementById('power-menu').style.display = 'flex';
-        }
-
-        function closePowerMenu() { document.getElementById('power-menu').style.display = 'none'; }
-
-        function systemShutdown() {
-            closePowerMenu();
-            const overlay = document.getElementById('black-overlay');
-            overlay.style.display = 'block';
-            overlay.style.opacity = '1';
-            isCompletelyShutdown = true;
-        }
-
-        function systemRestart() {
-            closePowerMenu();
-            systemShutdown();
-            setTimeout(bootSystem, 2000);
-        }
-
-        function bootSystem() {
-            isCompletelyShutdown = false;
-            const boot = document.getElementById('boot-screen');
-            boot.style.display = 'flex';
-            setTimeout(() => {
-                boot.style.display = 'none';
-                const overlay = document.getElementById('black-overlay');
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 600);
-                resetToLockscreen();
-            }, 4000);
-        }
-
-        updateNavVisibility();
     </script>
 </body>
 </html>
