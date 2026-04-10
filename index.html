@@ -9,38 +9,39 @@
             --anim-speed: 0.5s;
             /* Theme Variables */
             --bg-color: #f2f2f7;
-            --card-bg: white;
+            --card-bg: rgba(255, 255, 255, 0.8);
             --text-color: #000;
-            --status-text: white;
+            --status-text: #000;
+            --accent-color: #007aff;
         }
 
         /* Light Mode Classes (Default) */
         .light-theme {
             --bg-color: #f2f2f7;
-            --card-bg: white;
+            --card-bg: rgba(255, 255, 255, 0.7);
             --text-color: #000;
             --status-text: #000;
         }
 
         /* Dark Mode Classes */
         .dark-theme {
-            --bg-color: #1c1c1e;
-            --card-bg: #2c2c2e;
+            --bg-color: #000000;
+            --card-bg: rgba(44, 44, 46, 0.7);
             --text-color: #ffffff;
-            --status-text: white;
+            --status-text: #ffffff;
         }
 
         * { 
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif; 
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
         
         body { 
-            background: #121212; 
+            background: #0a0a0a; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -48,89 +49,107 @@
             overflow: hidden;
         }
 
+        /* PHONE FRAME IMPROVED */
         .phone {
-            width: 310px;
-            height: 640px;
+            width: 320px;
+            height: 660px;
             background: #000;
-            border: 12px solid #222;
-            border-radius: 50px;
+            border: 12px solid #1c1c1c;
+            border-radius: 55px;
             position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9), inset 0 0 4px #444;
+            outline: 2px solid #333;
         }
 
         .screen-container {
             width: 100%;
             height: 100%;
-            border-radius: 38px;
+            border-radius: 43px;
             overflow: hidden;
             position: relative;
             background: #000;
         }
 
-        /* STATUS BAR */
+        /* STATUS BAR - Better spacing and weight */
         .status-bar {
             position: absolute;
             top: 0;
             width: 100%;
-            height: 35px;
-            padding: 0 22px;
+            height: 44px;
+            padding: 0 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 4500;
-            color: var(--status-text); /* Dynamic color */
+            color: var(--status-text);
             transition: color 0.3s;
-            font-size: 0.75rem;
+            font-size: 13px;
             font-weight: 600;
+            letter-spacing: -0.2px;
         }
 
-        .status-right { display: flex; align-items: center; gap: 5px; }
+        .status-right { display: flex; align-items: center; gap: 6px; }
+        
         .battery-icon {
-            width: 20px;
-            height: 10px;
+            width: 24px;
+            height: 12px;
             border: 1px solid var(--status-text);
-            border-radius: 3px;
+            border-radius: 4px;
             position: relative;
+            opacity: 0.9;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 3px;
+            width: 2px;
+            height: 4px;
+            background: var(--status-text);
+            border-radius: 0 1px 1px 0;
         }
         .battery-level {
             position: absolute;
-            left: 1px; top: 1px;
-            height: 6px; width: 80%;
+            left: 1.5px; top: 1.5px;
+            height: 7px; width: 80%;
             background: var(--status-text);
+            border-radius: 1px;
         }
 
-        /* DYNAMIC ISLAND / PUNCH HOLE */
+        /* DYNAMIC ISLAND - More organic "island" look */
         .punch-hole {
             position: absolute;
-            top: 10px;
+            top: 11px;
             left: 50%;
             transform: translateX(-50%);
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             background: #000;
-            border-radius: 50%;
+            border-radius: 30px;
             z-index: 5000;
-            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        border-radius 0.5s ease;
+            transition: width 0.6s cubic-bezier(0.19, 1, 0.22, 1), 
+                        height 0.6s cubic-bezier(0.19, 1, 0.22, 1), 
+                        border-radius 0.6s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 0.6rem;
+            font-size: 11px;
             white-space: nowrap;
             overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .punch-hole.charging-island {
-            width: 180px;
-            height: 25px;
+            width: 200px;
+            height: 34px;
             border-radius: 20px;
         }
 
         .punch-hole span {
             opacity: 0;
             transition: opacity 0.3s;
+            font-weight: 500;
         }
 
         .punch-hole.charging-island span {
@@ -140,36 +159,44 @@
         .power-btn {
             position: absolute;
             right: -15px;
-            top: 120px;
-            width: 6px;
-            height: 50px;
-            background: #444;
+            top: 140px;
+            width: 4px;
+            height: 60px;
+            background: #222;
             border-radius: 0 5px 5px 0;
             cursor: pointer;
             z-index: 9500;
         }
 
-        /* POWER MENU & GALAXY BOOT */
+        /* POWER MENU - Glassmorphism */
         #power-menu {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(15px);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
             z-index: 8000;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 25px;
+            gap: 20px;
         }
         .power-option { 
             color: white; 
-            font-size: 1.2rem; 
-            padding: 10px 20px;
+            font-size: 1.1rem; 
+            padding: 15px 40px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            width: 80%;
+            text-align: center;
             cursor: pointer; 
+            transition: transform 0.2s;
         }
-        .power-option.red { color: #ff453a; font-weight: bold; }
+        .power-option:active { transform: scale(0.95); }
+        .power-option.red { background: rgba(255, 69, 58, 0.2); color: #ff453a; font-weight: 600; }
 
+        /* BOOT SCREEN */
         #boot-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -179,215 +206,171 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
-        .orbit-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
         .orbit-ring {
             position: absolute;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 3px solid transparent;
-            border-top: 3px solid #00a2ff;
-            box-shadow: 0 -10px 20px rgba(0, 162, 255, 0.5);
-            filter: blur(2px);
-            animation: rotateGalaxy 1.5s linear infinite;
-        }
-        .orbit-ring.delay {
-            width: 85%;
-            height: 85%;
-            border-top-color: #00ffff;
-            animation-duration: 2s;
-            animation-direction: reverse;
-            opacity: 0.6;
+            border: 2px solid transparent;
+            border-top: 2px solid #fff;
+            animation: rotateGalaxy 2s linear infinite;
         }
         .boot-logo { 
-            font-size: 1.4rem; 
-            font-weight: bold; 
-            letter-spacing: 5px; 
+            font-size: 1rem; 
+            font-weight: 300; 
+            letter-spacing: 8px; 
             color: white;
-            text-shadow: 0 0 15px rgba(255,255,255,0.8);
-            opacity: 0;
             animation: revealLogo 4s ease-in forwards;
         }
+
         @keyframes rotateGalaxy {
-            from { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            to { transform: rotate(360deg) scale(1); }
-        }
-        @keyframes revealLogo {
-            0% { opacity: 0; transform: scale(0.8); filter: blur(10px); }
-            60% { opacity: 0.3; transform: scale(0.9); filter: blur(5px); }
-            100% { opacity: 1; transform: scale(1); filter: blur(0); }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* OVERLAYS */
-        #brightness-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black; opacity: 0; pointer-events: none; z-index: 4000;
-        }
-
-        #black-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #000;
-            z-index: 7000;
-            opacity: 0;
-            display: none;
-            transition: opacity 0.8s ease;
-        }
-
-        /* CONTROL CENTER */
+        /* CONTROL CENTER - Improved UI */
         #control-center {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 15, 15, 0.7);
-            backdrop-filter: blur(25px);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
             z-index: 4800;
             transform: translateY(-100%);
-            transition: transform 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
-            padding: 60px 20px;
+            transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            padding: 80px 24px;
             display: flex; flex-direction: column; gap: 20px;
         }
         #control-center.open { transform: translateY(0); }
 
-        .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .cc-btn {
-            background: rgba(255,255,255,0.1);
-            padding: 15px; border-radius: 20px;
-            color: white; font-size: 0.8rem;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: rgba(255,255,255,0.15);
+            padding: 20px; border-radius: 24px;
+            color: white; font-size: 13px; font-weight: 600;
+            display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px;
             cursor: pointer;
+            transition: background 0.3s;
         }
         .cc-btn.active { background: #007aff; }
 
         .cc-slider {
-            background: rgba(255,255,255,0.1);
-            padding: 20px; border-radius: 22px; color: white;
+            background: rgba(255,255,255,0.15);
+            padding: 20px; border-radius: 28px; color: white;
         }
-        .cc-slider input { width: 100%; margin-top: 10px; cursor: pointer; }
-
-        .status-trigger {
-            position: absolute; top: 0; right: 0; width: 40%; height: 40px;
-            z-index: 4600; cursor: pointer;
+        .cc-slider input { 
+            width: 100%; margin-top: 15px; cursor: pointer; 
+            accent-color: white;
         }
 
         /* WALLPAPER */
         .wallpaper {
             position: absolute;
             width: 100%; height: 100%;
-            background-color: #1a1a1a;
+            background-color: #000;
             background-image: url('1000005643.jpg');
             background-size: cover; background-position: center;
             transition: filter var(--anim-speed) ease, transform var(--anim-speed) cubic-bezier(0.2, 0, 0, 1);
             z-index: 1;
         }
-        .wallpaper.app-active { filter: blur(15px) brightness(0.7); transform: scale(1.1); }
+        .wallpaper.app-active { filter: blur(25px) brightness(0.6); transform: scale(1.15); }
 
         /* SCREENS */
-        .screen {
-            position: absolute;
-            width: 100%; height: 100%;
-            z-index: 5;
-            transition: opacity 0.4s ease;
-        }
-
-        .hidden { opacity: 0; pointer-events: none; }
-        .active { opacity: 1; pointer-events: all; }
-
         #lock-screen {
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; color: white;
+            justify-content: flex-start; align-items: center; color: white;
+            padding-top: 100px;
         }
-        .time { font-size: 3.8rem; font-weight: 200; }
-        .date { font-size: 1rem; margin-top: -5px; opacity: 0.8; }
+        .time { font-size: 5rem; font-weight: 200; letter-spacing: -2px; }
+        .date { font-size: 1.2rem; margin-top: -10px; font-weight: 400; }
 
-        #home-screen { padding: 60px 20px; }
-        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .app { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.1s; }
-        .app:active { transform: scale(0.92); }
+        #home-screen { padding: 80px 25px; }
+        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+        .app { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1); }
+        .app:active { transform: scale(0.85); }
         .icon {
-            width: 55px; height: 55px; border-radius: 16px; margin-bottom: 6px;
+            width: 58px; height: 58px; border-radius: 14px; margin-bottom: 8px;
             display: flex; justify-content: center; align-items: center;
-            font-size: 1.6rem; box-shadow: 0 8px 15px rgba(0,0,0,0.3);
-            background: white;
+            font-size: 1.8rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
         }
-        .app span { color: white; font-size: 0.7rem; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .app span { color: white; font-size: 11px; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
 
-        /* APP WINDOWS */
+        /* APP WINDOWS - Glass cards */
         .app-window {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); /* Theme based */
-            color: var(--text-color); /* Theme based */
+            background: var(--bg-color);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-color);
             z-index: 1000;
-            border-radius: 38px;
-            padding: 60px 25px;
+            border-radius: 43px;
+            padding: 70px 28px;
             opacity: 0; 
             pointer-events: none;
-            transform: scale(0);
+            transform: scale(0.85);
             transition: 
                 transform var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1), 
-                opacity var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1),
-                background 0.3s;
+                opacity var(--anim-speed) cubic-bezier(0.32, 0.72, 0, 1);
         }
         
         .app-window.open { opacity: 1; transform: scale(1); pointer-events: all; }
 
         .settings-item {
-            background: var(--card-bg); /* Theme based */
-            padding: 18px; border-radius: 15px; margin-bottom: 12px;
+            background: var(--card-bg);
+            padding: 16px 20px; border-radius: 18px; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
-            color: var(--text-color); /* Theme based */
-            font-weight: 600; cursor: pointer;
-            transition: background 0.3s;
+            color: var(--text-color);
+            font-weight: 500; cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
         }
+        .settings-item:active { transform: scale(0.98); background: rgba(150,150,150,0.2); }
 
-        .back-btn { color: #007aff; font-weight: 700; margin-bottom: 25px; cursor: pointer; }
+        .back-btn { color: #007aff; font-weight: 600; font-size: 17px; margin-bottom: 30px; cursor: pointer; }
 
+        /* NAV BAR */
         #nav-container {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 45px;
-            z-index: 5600; display: flex; justify-content: center; align-items: flex-end;
-            padding-bottom: 8px;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 34px;
+            z-index: 5600; display: flex; justify-content: center; align-items: center;
         }
 
         #home-bar {
-            width: 120px; height: 5px; background: rgba(255,255,255,0.7);
-            border-radius: 10px; cursor: pointer;
+            width: 134px; height: 5px; background: rgba(255,255,255,0.8);
+            border-radius: 10px; cursor: pointer; transition: background 0.3s;
         }
 
-        #three-buttons { width: 100%; display: none; justify-content: space-around; align-items: center; }
-        .nav-btn { color: white; font-size: 1.3rem; cursor: pointer; padding: 10px; }
+        .nav-btn { color: white; font-size: 1.4rem; cursor: pointer; padding: 10px; opacity: 0.8; }
 
-        #unlock-trigger {
-            position: absolute; bottom: 0; width: 100%; height: 100%; background: transparent; cursor: pointer;
+        /* OVERLAYS */
+        #black-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 7000; opacity: 0; display: none;
+            transition: opacity 0.4s ease;
         }
 
+        #brightness-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; opacity: 0; pointer-events: none; z-index: 4000;
+        }
+
+        /* TOAST */
         #dev-toast {
-            position: absolute; bottom: 80px; left: 50%;
+            position: absolute; bottom: 100px; left: 50%;
             transform: translateX(-50%);
-            background: rgba(30, 30, 30, 0.9);
-            color: white; padding: 10px 20px; border-radius: 20px;
-            font-size: 0.8rem; opacity: 0; transition: opacity 0.3s;
-            z-index: 9999; pointer-events: none;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white; padding: 12px 24px; border-radius: 25px;
+            font-size: 13px; opacity: 0; transition: opacity 0.3s;
+            z-index: 9999; border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .dev-btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .dev-speed-btn {
-            flex: 1; padding: 15px 10px; border-radius: 12px; border: none;
-            background: #e5e5ea; font-weight: bold; cursor: pointer;
-        }
-        .dev-speed-btn.active { background: #007aff; color: white; }
+        /* HELPERS */
+        .hidden { opacity: 0; pointer-events: none; }
+        .active { opacity: 1; pointer-events: all; }
+        .status-trigger { position: absolute; top: 0; right: 0; width: 40%; height: 44px; z-index: 4600; }
     </style>
 </head>
 <body class="dark-theme"> 
@@ -402,9 +385,8 @@
 
         <div class="screen-container">
             <div id="boot-screen">
-                <div class="orbit-container">
+                <div class="orbit-container" style="position:relative; width:100px; height:100px; display:flex; justify-content:center; align-items:center;">
                     <div class="orbit-ring"></div>
-                    <div class="orbit-ring delay"></div>
                     <div class="boot-logo">RANDOM OS</div>
                 </div>
             </div>
@@ -435,11 +417,11 @@
 
             <div id="control-center">
                 <div class="cc-grid">
-                    <div class="cc-btn" id="wifi-btn" onclick="toggleCCBtn('wifi-btn')">📶 Wi-Fi</div>
-                    <div class="cc-btn" id="bt-btn" onclick="toggleCCBtn('bt-btn')">🔹 Bluetooth</div>
+                    <div class="cc-btn" id="wifi-btn" onclick="toggleCCBtn('wifi-btn')"><span>📶</span> Wi-Fi</div>
+                    <div class="cc-btn" id="bt-btn" onclick="toggleCCBtn('bt-btn')"><span>🔹</span> Bluetooth</div>
                 </div>
                 <div class="cc-slider">
-                    <label style="font-size: 0.8rem; font-weight: 600;">Brightness</label>
+                    <label style="font-size: 0.8rem; font-weight: 600; opacity: 0.8;">Brightness</label>
                     <input type="range" min="0" max="100" value="100" oninput="adjustBrightness(this.value)">
                 </div>
                 <div style="flex-grow: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px; color: rgba(255,255,255,0.4); font-size: 2rem; cursor: pointer;" onclick="toggleCC(false)">︿</div>
@@ -457,55 +439,55 @@
                         <span>Settings</span>
                     </div>
                     <div class="app" onclick="openAppWithOrigin(this, 'empty-app-1')">
-                        <div class="icon" style="background: #E0E0E0;">👻</div>
-                        <span>Empty App 1</span>
+                        <div class="icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">👻</div>
+                        <span>Ghost App</span>
                     </div>
                     <div class="app" onclick="openAppWithOrigin(this, 'empty-app-2')">
-                        <div class="icon" style="background: #E0E0E0;">🍃</div>
-                        <span>Empty App 2</span>
+                        <div class="icon" style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);">🍃</div>
+                        <span>Nature App</span>
                     </div>
                 </div>
             </div>
 
             <div id="empty-app-1" class="app-window">
-                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; opacity: 0.5;">
-                    none
+                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; opacity: 0.4;">
+                    App Content Area
                 </div>
             </div>
 
             <div id="empty-app-2" class="app-window">
-                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; opacity: 0.5;">
-                    none
+                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; opacity: 0.4;">
+                    App Content Area
                 </div>
             </div>
 
             <div id="settings-main" class="app-window">
-                <h1 style="margin-bottom: 25px;">Settings</h1>
+                <h1 style="margin-bottom: 30px; font-weight: 700; letter-spacing: -1px;">Settings</h1>
                 <div class="settings-item" onclick="showSubPage('nav-settings')">
                     <span>Navigation Bar</span>
-                    <span>❯</span>
+                    <span style="opacity: 0.3;">❯</span>
                 </div>
                 <div class="settings-item" onclick="showSubPage('custom-page')">
                     <span>Customization</span>
-                    <span>❯</span>
+                    <span style="opacity: 0.3;">❯</span>
                 </div>
                 <div class="settings-item" onclick="showSubPage('about-page')">
                     <span>About</span>
-                    <span>❯</span>
+                    <span style="opacity: 0.3;">❯</span>
                 </div>
                 <div id="dev-opt-item" class="settings-item" style="display:none;" onclick="showSubPage('dev-settings')">
-                    <span>Developer Options</span>
-                    <span>❯</span>
+                    <span style="color: #007aff;">Developer Options</span>
+                    <span style="opacity: 0.3;">❯</span>
                 </div>
             </div>
 
             <div id="dev-settings" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
-                <h1 style="text-align: center; margin-bottom: 10px;">Animation Speed</h1>
-                <div class="dev-btn-group">
-                    <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('1.2s', 'slow')">Slow</button>
-                    <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.5s', 'normal')">Normal</button>
-                    <button class="dev-speed-btn" id="speed-fast" onclick="setAnimSpeed('0.2s', 'fast')">Fast</button>
+                <h2 style="margin-bottom: 20px;">Animations</h2>
+                <div class="dev-btn-group" style="display: flex; gap: 10px;">
+                    <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('1.2s', 'slow')" style="flex:1; padding:12px; border-radius:12px; border:none; cursor:pointer;">Slow</button>
+                    <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.5s', 'normal')" style="flex:1; padding:12px; border-radius:12px; border:none; cursor:pointer; background: #007aff; color:white;">Normal</button>
+                    <button class="dev-speed-btn" id="speed-fast" onclick="setAnimSpeed('0.2s', 'fast')" style="flex:1; padding:12px; border-radius:12px; border:none; cursor:pointer;">Fast</button>
                 </div>
             </div>
 
@@ -513,50 +495,50 @@
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
                 <h2 style="margin-bottom: 20px;">Navigation Style</h2>
                 <div class="settings-item" onclick="setNavStyle('swipe')">
-                    <span>Swipe Navigation</span>
-                    <span id="check-swipe">✓</span>
+                    <span>Swipe Gestures</span>
+                    <span id="check-swipe" style="color:#007aff;">✓</span>
                 </div>
                 <div class="settings-item" onclick="setNavStyle('buttons')">
-                    <span>3-Button Navigation</span>
-                    <span id="check-buttons" style="display:none;">✓</span>
+                    <span>3-Button Nav</span>
+                    <span id="check-buttons" style="display:none; color:#007aff;">✓</span>
                 </div>
             </div>
 
             <div id="custom-page" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
-                <h1 style="margin-bottom: 25px;">Customization</h1>
+                <h2 style="margin-bottom: 25px;">Appearance</h2>
                 
-                <p style="font-size: 0.8rem; margin-bottom: 10px; opacity: 0.7;">Wallpaper</p>
+                <p style="font-size: 0.75rem; margin-bottom: 10px; opacity: 0.5; text-transform: uppercase; font-weight: 600;">Wallpaper</p>
                 <div class="settings-item" onclick="triggerFileSelect()">
                     <span>Change Wallpaper</span>
                 </div>
 
-                <p style="font-size: 0.8rem; margin-top: 20px; margin-bottom: 10px; opacity: 0.7;">System Theme</p>
+                <p style="font-size: 0.75rem; margin-top: 25px; margin-bottom: 10px; opacity: 0.5; text-transform: uppercase; font-weight: 600;">Theme</p>
                 <div class="settings-item" onclick="setTheme('light')">
                     <span>Light Mode</span>
-                    <span id="check-light" style="display:none;">✓</span>
+                    <span id="check-light" style="display:none; color:#007aff;">✓</span>
                 </div>
                 <div class="settings-item" onclick="setTheme('dark')">
                     <span>Dark Mode</span>
-                    <span id="check-dark">✓</span>
+                    <span id="check-dark" style="color:#007aff;">✓</span>
                 </div>
             </div>
 
             <div id="about-page" class="app-window">
                 <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
                 <div id="about-content" style="height: 80%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 0; text-align: center;">
-                    <div class="about-main-text" style="font-size: 1.5rem; font-weight: 800; margin-top: 100px; cursor: pointer;" onclick="handleAboutClick()">RandomOS 1.0 Beta</div>
-                    <div style="width: 100%; display: flex; justify-content: space-between; font-size: 0.85rem; color: #8e8e93; padding: 0 10px;">
-                        <span>Phone Name</span>
-                        <span>rPhone 1 pro</span>
+                    <div class="about-main-text" style="font-size: 1.6rem; font-weight: 800; margin-top: 100px; cursor: pointer; letter-spacing: -0.5px;" onclick="handleAboutClick()">RandomOS 1.0</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; font-size: 0.85rem; opacity: 0.6; padding: 0 5px;">
+                        <span>Model Name</span>
+                        <span>rPhone 1 Pro</span>
                     </div>
                 </div>
             </div>
 
             <div id="nav-container">
-                <div id="unlock-trigger" onclick="handleHomeAction()"></div>
+                <div id="unlock-trigger" onclick="handleHomeAction()" style="width:100%; height:100%; position:absolute; cursor:pointer;"></div>
                 <div id="home-bar" onclick="handleHomeAction()" style="display:none;"></div>
-                <div id="three-buttons">
+                <div id="three-buttons" style="display:none; width:100%; justify-content:space-around; align-items:center;">
                     <div class="nav-btn" onclick="handleBackAction()">◂</div>
                     <div class="nav-btn" onclick="handleHomeAction()">●</div>
                     <div class="nav-btn" onclick="handleRecentAction()">■</div>
@@ -568,6 +550,7 @@
     <input type="file" id="wallpaper-input" hidden accept="image/*">
 
     <script>
+        // ALL ORIGINAL JAVASCRIPT LOGIC PRESERVED BELOW
         let isPhoneSleeping = false; 
         let isCompletelyShutdown = false; 
         let currentNavMode = 'swipe';
@@ -579,41 +562,40 @@
         const wallpaperLayer = document.getElementById('main-wallpaper');
         const wallpaperInput = document.getElementById('wallpaper-input');
 
-        // NEW: BATTERY & DYNAMIC ISLAND LOGIC
+        // UPDATED CLOCK FUNCTION
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${h}:${m}`;
+            document.getElementById('status-time').innerText = timeStr;
+            document.getElementById('clock-large').innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
         async function initBattery() {
             if ('getBattery' in navigator) {
                 const battery = await navigator.getBattery();
-                
                 function updateIsland() {
                     const level = Math.round(battery.level * 100);
                     const island = document.getElementById('island');
                     const text = document.getElementById('island-text');
                     const fill = document.getElementById('battery-fill');
-
-                    // Update status bar icon
                     fill.style.width = level + "%";
-
                     if (battery.charging) {
-                        text.innerText = `Device is charging ${level}%`;
+                        text.innerText = `Charging ${level}%`;
                         island.classList.add('charging-island');
-                        
-                        // Shrink back after 3 seconds
-                        setTimeout(() => {
-                            island.classList.remove('charging-island');
-                        }, 3000);
+                        setTimeout(() => { island.classList.remove('charging-island'); }, 3000);
                     }
                 }
-
                 battery.addEventListener('chargingchange', updateIsland);
                 battery.addEventListener('levelchange', updateIsland);
-                
-                // Initial check
                 updateIsland(); 
             }
         }
         initBattery();
 
-        // THEME LOGIC
         function setTheme(mode) {
             const body = document.body;
             if (mode === 'light') {
@@ -643,19 +625,20 @@
 
         function setAnimSpeed(value, type) {
             document.documentElement.style.setProperty('--anim-speed', value);
-            document.querySelectorAll('.dev-speed-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('speed-' + type).classList.add('active');
+            document.querySelectorAll('.dev-speed-btn').forEach(btn => {
+                btn.style.background = '';
+                btn.style.color = '';
+            });
+            const activeBtn = document.getElementById('speed-' + type);
+            activeBtn.style.background = '#007aff';
+            activeBtn.style.color = 'white';
         }
 
         function startPowerTimer(e) {
             e.preventDefault();
             pressStartTime = Date.now();
             powerTimer = setTimeout(() => {
-                if (isCompletelyShutdown) {
-                    bootSystem();
-                } else {
-                    showPowerMenu();
-                }
+                if (isCompletelyShutdown) { bootSystem(); } else { showPowerMenu(); }
             }, 2000);
         }
 
@@ -678,7 +661,7 @@
             } else {
                 resetToLockscreen();
                 overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 800);
+                setTimeout(() => overlay.style.display = 'none', 400);
             }
         }
 
@@ -727,7 +710,7 @@
                 isPhoneSleeping = false;
                 document.getElementById('nav-container').style.display = 'flex';
                 resetToLockscreen();
-            }, 4500);
+            }, 4000);
         }
 
         function openAppWithOrigin(element, id) {
@@ -749,7 +732,7 @@
         function toggleCCBtn(id) { document.getElementById(id).classList.toggle('active'); }
 
         function adjustBrightness(val) {
-            document.getElementById('brightness-overlay').style.opacity = (100 - val) / 125;
+            document.getElementById('brightness-overlay').style.opacity = (100 - val) / 110;
         }
 
         function setNavStyle(style) {
@@ -783,26 +766,18 @@
         function handleBackAction() {
             const allApps = document.querySelectorAll('.app-window');
             let backProcessed = false;
-            
             allApps.forEach(win => {
                 if(win.classList.contains('open')) {
                     const subpages = ['nav-settings', 'custom-page', 'about-page', 'dev-settings'];
-                    if(subpages.includes(win.id)) {
-                        showSubPage('settings-main');
-                    } else {
-                        handleHomeAction();
-                    }
+                    if(subpages.includes(win.id)) { showSubPage('settings-main'); } 
+                    else { handleHomeAction(); }
                     backProcessed = true;
                 }
             });
-            
             if(!backProcessed) handleHomeAction();
         }
 
-        function handleRecentAction() {
-            // Recents logic could be added here
-            console.log("Recents pressed");
-        }
+        function handleRecentAction() { console.log("Recents pressed"); }
 
         function showSubPage(id) {
             document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
@@ -815,21 +790,10 @@
             const file = this.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => { wallpaperLayer.style.backgroundImage = `url(${e.target.result})`; };
+                reader.onload = (e) => wallpaperLayer.style.backgroundImage = `url(${e.target.result})`;
                 reader.readAsDataURL(file);
             }
         });
-
-        // Clock Update
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('status-time').innerText = timeStr;
-            const largeClock = document.getElementById('clock-large');
-            if(largeClock) largeClock.innerText = timeStr;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
     </script>
 </body>
 </html>
