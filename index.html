@@ -193,7 +193,7 @@
             z-index: 7000;
             opacity: 0;
             display: none;
-            transition: opacity 0.8s ease; /* Fade duration */
+            transition: opacity 0.8s ease;
         }
 
         /* CONTROL CENTER */
@@ -298,6 +298,31 @@
 
         .back-btn { color: #007aff; font-weight: 700; margin-bottom: 25px; cursor: pointer; }
 
+        /* ABOUT PAGE SPECIFIC */
+        #about-content {
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 0;
+            text-align: center;
+        }
+        .about-main-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1c1c1e;
+            margin-top: 100px;
+        }
+        .about-footer {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #8e8e93;
+            padding: 0 10px;
+        }
+
         #nav-container {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 45px;
             z-index: 5600; display: flex; justify-content: center; align-items: flex-end;
@@ -393,6 +418,10 @@
                     <span>Customization</span>
                     <span>❯</span>
                 </div>
+                <div class="settings-item" onclick="showSubPage('about-page')">
+                    <span>About</span>
+                    <span>❯</span>
+                </div>
             </div>
 
             <div id="nav-settings" class="app-window">
@@ -413,6 +442,17 @@
                 <h1 style="margin-bottom: 25px;">Appearance</h1>
                 <div class="settings-item" onclick="triggerFileSelect()">
                     <span>Change Wallpaper</span>
+                </div>
+            </div>
+
+            <div id="about-page" class="app-window">
+                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
+                <div id="about-content">
+                    <div class="about-main-text">RandomOS 1.0 Beta</div>
+                    <div class="about-footer">
+                        <span>Phone Name</span>
+                        <span>rPhone 1 pro</span>
+                    </div>
                 </div>
             </div>
 
@@ -507,7 +547,6 @@
             const overlay = document.getElementById('black-overlay');
             overlay.style.display = 'block';
             
-            // Fade Out Animation
             setTimeout(() => {
                 overlay.style.opacity = '1';
                 isCompletelyShutdown = true;
@@ -521,14 +560,12 @@
             const overlay = document.getElementById('black-overlay');
             overlay.style.display = 'block';
             
-            // Fade Out
             setTimeout(() => {
                 overlay.style.opacity = '1';
                 isCompletelyShutdown = true;
                 isPhoneSleeping = true;
                 document.getElementById('nav-container').style.display = 'none';
                 
-                // Wait for fade to finish, then boot
                 setTimeout(bootSystem, 1000);
             }, 10);
         }
@@ -538,20 +575,17 @@
             const overlay = document.getElementById('black-overlay');
             
             bootScreen.style.display = 'flex';
-            overlay.style.opacity = '0'; // Ensure overlay is clear for boot
+            overlay.style.opacity = '0';
             overlay.style.display = 'none';
             
             setTimeout(() => {
-                // Fade in starting (Phone turns on)
                 bootScreen.style.display = 'none';
                 isCompletelyShutdown = false;
                 isPhoneSleeping = false;
                 
-                // Show UI
                 document.getElementById('nav-container').style.display = 'flex';
                 resetToLockscreen();
 
-                // Optional: Flash the overlay to simulate screen light-up
                 overlay.style.display = 'block';
                 overlay.style.opacity = '1';
                 setTimeout(() => {
@@ -626,7 +660,8 @@
 
         function handleBackAction() {
             if (isPhoneSleeping) return;
-            const subpages = ['nav-settings', 'custom-page'];
+            // UPDATED SUBPAGE LIST TO INCLUDE ABOUT
+            const subpages = ['nav-settings', 'custom-page', 'about-page'];
             let inSubPage = false;
             subpages.forEach(id => {
                 if(document.getElementById(id).classList.contains('open')) {
