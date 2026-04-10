@@ -427,6 +427,26 @@
                         <div class="icon">⚙️</div>
                         <span>Settings</span>
                     </div>
+                    <div class="app" onclick="openAppWithOrigin(this, 'empty-app-1')">
+                        <div class="icon" style="background: #E0E0E0;">👻</div>
+                        <span>Empty App 1</span>
+                    </div>
+                    <div class="app" onclick="openAppWithOrigin(this, 'empty-app-2')">
+                        <div class="icon" style="background: #E0E0E0;">🍃</div>
+                        <span>Empty App 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="empty-app-1" class="app-window">
+                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; opacity: 0.5;">
+                    none
+                </div>
+            </div>
+
+            <div id="empty-app-2" class="app-window">
+                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; opacity: 0.5;">
+                    none
                 </div>
             </div>
 
@@ -698,14 +718,23 @@
         }
 
         function handleBackAction() {
-            const subpages = ['nav-settings', 'custom-page', 'about-page', 'dev-settings'];
+            // Updated to handle closing the new empty apps too
+            const allApps = document.querySelectorAll('.app-window');
             let backProcessed = false;
-            subpages.forEach(id => {
-                if(document.getElementById(id).classList.contains('open')) {
-                    showSubPage('settings-main');
+            
+            allApps.forEach(win => {
+                if(win.classList.contains('open')) {
+                    // Check if it's a subpage of settings
+                    const subpages = ['nav-settings', 'custom-page', 'about-page', 'dev-settings'];
+                    if(subpages.includes(win.id)) {
+                        showSubPage('settings-main');
+                    } else {
+                        handleHomeAction();
+                    }
                     backProcessed = true;
                 }
             });
+            
             if(!backProcessed) handleHomeAction();
         }
 
