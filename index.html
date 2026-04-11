@@ -5,33 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RandomOS 1.0 Beta</title>
     <style>
-        /* Prevents all scrolling on the website */
         html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
             overflow: hidden; 
             background-color: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             font-family: -apple-system, sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* The Phone Frame */
         .phone-container {
-            width: 320px;
-            height: 650px;
+            width: 320px; height: 650px;
             background: #000;
             border: 12px solid #1a1a1a;
             border-radius: 55px;
             position: relative;
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
         }
 
         .power-btn {
@@ -47,21 +38,17 @@
         }
 
         .screen {
-            flex-grow: 1; background: #000; position: relative;
+            width: 100%; height: 100%;
+            background: #000; position: relative;
             border-radius: 43px; overflow: hidden;
         }
 
-        /* View shared styles */
         .view {
             display: none; width: 100%; height: 100%;
             position: absolute; flex-direction: column;
             align-items: center; color: white;
             border-radius: 43px;
         }
-
-        /* Lockscreen */
-        #lockscreen { padding-top: 80px; }
-        #time { font-size: 3.5rem; font-weight: 200; margin: 0; }
 
         /* Home Screen */
         #homescreen {
@@ -74,30 +61,34 @@
             gap: 20px; padding: 20px;
         }
 
-        .app-container { text-align: center; cursor: pointer; }
         .app-icon {
             width: 55px; height: 55px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; margin-bottom: 5px;
-            background: linear-gradient(#444, #222);
+            font-size: 20px; background: linear-gradient(#444, #222);
+            cursor: pointer;
         }
-        .app-label { font-size: 10px; color: white; }
 
-        /* Settings App - Zoom Animation */
+        /* Settings App - Fixed Slower Zoom */
         #settings-app {
+            display: flex; /* Always flex but hidden via opacity/scale */
             background: #1c1c1e;
             z-index: 40;
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
-            transform: scale(0.1); /* Starts small */
+            /* Slower, smoother 0.8s timing */
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                        opacity 0.6s ease, 
+                        visibility 0.8s;
+            transform: scale(0);
             opacity: 0;
-            transform-origin: 50px 100px; /* Zooms from the Settings icon position */
-            display: none; 
+            visibility: hidden; 
+            pointer-events: none;
+            transform-origin: 50px 100px; 
         }
 
         #settings-app.open {
-            display: flex;
-            transform: scale(1); /* Zooms to full size */
+            transform: scale(1);
             opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
         }
 
         .settings-header {
@@ -106,9 +97,6 @@
             box-sizing: border-box;
         }
 
-        .settings-list { width: 100%; padding: 10px 20px; font-size: 14px; box-sizing: border-box; }
-        .settings-item { padding: 18px 0; border-bottom: 1px solid #2c2c2e; color: #eee; }
-
         /* Home Bar */
         #home-bar {
             width: 110px; height: 4px; background: rgba(255, 255, 255, 0.4);
@@ -116,6 +104,9 @@
             left: 50%; transform: translateX(-50%); z-index: 60;
             cursor: pointer; display: none;
         }
+
+        #lockscreen { padding-top: 80px; }
+        #time { font-size: 3.5rem; font-weight: 200; margin: 0; }
     </style>
 </head>
 <body>
@@ -135,17 +126,16 @@
                 <div class="app-grid">
                     <div class="app-container" onclick="openSettings()">
                         <div class="app-icon">⚙️</div>
-                        <div class="app-label">Settings</div>
+                        <p style="font-size: 10px; text-align: center;">Settings</p>
                     </div>
                 </div>
             </div>
 
             <div id="settings-app" class="view">
                 <div class="settings-header">Settings</div>
-                <div class="settings-list">
-                    <div class="settings-item">RandomOS Version 1.0</div>
-                    <div class="settings-item">Build: BETA_2026</div>
-                    <div class="settings-item">Device: RandomPhone</div>
+                <div style="padding: 20px; color: #888;">
+                    <p>Animation Speed: Slow</p>
+                    <p>System: Stable</p>
                 </div>
             </div>
         </div>
@@ -154,29 +144,22 @@
     <script>
         let isPowerOn = false;
         let isUnlocked = false;
-        let isAppSettingsOpen = false;
-
-        const views = {
-            lock: document.getElementById('lockscreen'),
-            home: document.getElementById('homescreen'),
-            settings: document.getElementById('settings-app'),
-            bar: document.getElementById('home-bar')
-        };
 
         function togglePower() {
-            isPowerOn = !isPowerOn;
+            const views = ['lockscreen', 'homescreen', 'home-bar'];
+            const settings = document.getElementById('settings-app');
             
-            if (!isPowerOn) {
-                isUnlocked = false;
-                isAppSettingsOpen = false;
-                views.lock.style.display = 'none';
-                views.home.style.display = 'none';
-                views.settings.classList.remove('open');
-                setTimeout(() => { views.settings.style.display = 'none'; }, 200);
-                views.bar.style.display = 'none';
-            } else {
-                views.lock.style.display = 'flex';
-                views.bar.style.display = 'block';
+            isPowerOn = !isPowerOn;
+            isUnlocked = false;
+
+            settings.classList.remove('open'); // Close app on power off
+            
+            views.forEach(id => {
+                document.getElementById(id).style.display = isPowerOn ? (id === 'home-bar' ? 'block' : (id === 'lockscreen' ? 'flex' : 'none')) : 'none';
+            });
+            
+            if (isPowerOn) {
+                document.getElementById('homescreen').style.display = 'none';
                 updateClock();
             }
         }
@@ -184,23 +167,20 @@
         function handleHomeBar() {
             if (!isPowerOn) return;
             
-            if (!isUnlocked) {
+            const settings = document.getElementById('settings-app');
+            if (settings.classList.contains('open')) {
+                // Smoothly close the app
+                settings.classList.remove('open');
+            } else if (!isUnlocked) {
+                // Unlock phone
                 isUnlocked = true;
-                views.lock.style.display = 'none';
-                views.home.style.display = 'flex';
-            } else if (isAppSettingsOpen) {
-                isAppSettingsOpen = false;
-                views.settings.classList.remove('open');
-                // Hide display after animation finishes
-                setTimeout(() => { views.settings.style.display = 'none'; }, 350);
+                document.getElementById('lockscreen').style.display = 'none';
+                document.getElementById('homescreen').style.display = 'flex';
             }
         }
 
         function openSettings() {
-            isAppSettingsOpen = true;
-            views.settings.style.display = 'flex';
-            // Trigger animation on next frame
-            setTimeout(() => { views.settings.classList.add('open'); }, 10);
+            document.getElementById('settings-app').classList.add('open');
         }
 
         function updateClock() {
