@@ -7,14 +7,12 @@
     <style>
         :root {
             --anim-speed: 0.5s;
-            /* Theme Variables */
             --bg-color: #f2f2f7;
             --card-bg: white;
             --text-color: #000;
             --status-text: white;
         }
 
-        /* Light Mode Classes (Default) */
         .light-theme {
             --bg-color: #f2f2f7;
             --card-bg: white;
@@ -22,7 +20,6 @@
             --status-text: #000;
         }
 
-        /* Dark Mode Classes */
         .dark-theme {
             --bg-color: #1c1c1e;
             --card-bg: #2c2c2e;
@@ -78,7 +75,7 @@
             justify-content: space-between;
             align-items: center;
             z-index: 4500;
-            color: var(--status-text); /* Dynamic color */
+            color: var(--status-text);
             transition: color 0.3s;
             font-size: 0.75rem;
             font-weight: 600;
@@ -99,7 +96,6 @@
             background: var(--status-text);
         }
 
-        /* DYNAMIC ISLAND / PUNCH HOLE */
         .punch-hole {
             position: absolute;
             top: 10px;
@@ -149,7 +145,6 @@
             z-index: 9500;
         }
 
-        /* POWER MENU & GALAXY BOOT */
         #power-menu {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -176,4 +171,778 @@
             background: black;
             z-index: 9000;
             display: none;
-    
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .orbit-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .orbit-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top: 3px solid #00a2ff;
+            box-shadow: 0 -10px 20px rgba(0, 162, 255, 0.5);
+            filter: blur(2px);
+            animation: rotateGalaxy 1.5s linear infinite;
+        }
+        .orbit-ring.delay {
+            width: 85%;
+            height: 85%;
+            border-top-color: #00ffff;
+            animation-duration: 2s;
+            animation-direction: reverse;
+            opacity: 0.6;
+        }
+        .boot-logo { 
+            font-size: 1.4rem; 
+            font-weight: bold; 
+            letter-spacing: 5px; 
+            color: white;
+            text-shadow: 0 0 15px rgba(255,255,255,0.8);
+            opacity: 0;
+            animation: revealLogo 4s ease-in forwards;
+        }
+        @keyframes rotateGalaxy {
+            from { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            to { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes revealLogo {
+            0% { opacity: 0; transform: scale(0.8); filter: blur(10px); }
+            60% { opacity: 0.3; transform: scale(0.9); filter: blur(5px); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+
+        #brightness-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black; opacity: 0; pointer-events: none; z-index: 4000;
+        }
+
+        #black-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 7000;
+            opacity: 0;
+            display: none;
+            transition: opacity 0.8s ease;
+        }
+
+        #control-center {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(25px);
+            z-index: 4800;
+            transform: translateY(-100%);
+            transition: transform 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+            padding: 60px 20px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        #control-center.open { transform: translateY(0); }
+
+        .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cc-btn {
+            background: rgba(255,255,255,0.1);
+            padding: 15px; border-radius: 20px;
+            color: white; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer;
+        }
+        .cc-btn.active { background: #007aff; }
+
+        .cc-slider {
+            background: rgba(255,255,255,0.1);
+            padding: 20px; border-radius: 22px; color: white;
+        }
+        .cc-slider input { width: 100%; margin-top: 10px; cursor: pointer; }
+
+        .status-trigger {
+            position: absolute; top: 0; right: 0; width: 40%; height: 40px;
+            z-index: 4600; cursor: pointer;
+        }
+
+        .wallpaper {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-color: #1a1a1a;
+            background-size: cover; background-position: center;
+            transition: filter var(--anim-speed) ease, transform var(--anim-speed) cubic-bezier(0.2, 0, 0, 1);
+            z-index: 1;
+        }
+        .wallpaper.app-active { filter: blur(15px) brightness(0.7); transform: scale(1.1); }
+
+        .screen {
+            position: absolute;
+            width: 100%; height: 100%;
+            z-index: 5;
+            transition: opacity var(--anim-speed) ease, transform var(--anim-speed) cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .hidden { opacity: 0; pointer-events: none; }
+        .active { opacity: 1; pointer-events: all; }
+
+        #lock-screen {
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+            transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1), opacity 0.5s;
+        }
+        
+        .lock-unlocking {
+            transform: scale(1.5);
+            opacity: 0 !important;
+        }
+
+        .home-opening {
+            animation: homeZoomIn 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        @keyframes homeZoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .time { font-size: 3.8rem; font-weight: 200; }
+        .date { font-size: 1rem; margin-top: -5px; opacity: 0.8; }
+
+        #home-screen { padding: 60px 20px; position: relative; }
+        
+        /* APP STYLES & ABSOLUTE POSITIONING */
+        .app { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            cursor: pointer; 
+            position: absolute; /* Changed to absolute to allow free dragging */
+            width: 70px;
+        }
+        
+        .app.jiggle {
+            animation: jiggle 0.3s infinite;
+        }
+
+        @keyframes jiggle {
+            0% { transform: rotate(-1deg); }
+            50% { transform: rotate(1.5deg); }
+            100% { transform: rotate(-1deg); }
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            background: #ff3b30;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .icon {
+            width: 55px; height: 55px; border-radius: 16px; margin-bottom: 6px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.6rem; box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+            background: white;
+        }
+        .app span { color: white; font-size: 0.7rem; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.5); text-align: center;}
+
+        /* FIX: Window animation is now just a fade, no "expanding from center" */
+        .app-window {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            color: var(--text-color);
+            z-index: 1000;
+            border-radius: 38px;
+            padding: 60px 25px;
+            opacity: 0; 
+            pointer-events: none;
+            transform: scale(1); /* Keep scale at 1 to stop center animation */
+            transition: opacity var(--anim-speed) ease, background 0.3s;
+        }
+        
+        .app-window.open { opacity: 1; pointer-events: all; }
+
+        .settings-item {
+            background: var(--card-bg);
+            padding: 18px; border-radius: 15px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            color: var(--text-color);
+            font-weight: 600; cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .back-btn { color: #007aff; font-weight: 700; margin-bottom: 25px; cursor: pointer; }
+
+        #nav-container {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 45px;
+            z-index: 5600; display: flex; justify-content: center; align-items: flex-end;
+            padding-bottom: 8px;
+        }
+
+        #home-bar {
+            width: 120px; height: 5px; background: rgba(255,255,255,0.7);
+            border-radius: 10px; cursor: pointer;
+        }
+
+        #three-buttons { width: 100%; display: none; justify-content: space-around; align-items: center; }
+        .nav-btn { color: white; font-size: 1.3rem; cursor: pointer; padding: 10px; }
+
+        #unlock-trigger {
+            position: absolute; bottom: 0; width: 100%; height: 100%; background: transparent; cursor: pointer;
+        }
+
+        #dev-toast {
+            position: absolute; bottom: 80px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.9);
+            color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 0.8rem; opacity: 0; transition: opacity 0.3s;
+            z-index: 9999; pointer-events: none;
+        }
+
+        .dev-btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .dev-speed-btn {
+            flex: 1; padding: 15px 10px; border-radius: 12px; border: none;
+            background: #e5e5ea; font-weight: bold; cursor: pointer;
+        }
+        .dev-speed-btn.active { background: #007aff; color: white; }
+    </style>
+</head>
+<body class="dark-theme"> 
+    <div class="phone">
+        <div id="dev-toast">developer options activated</div>
+
+        <div class="power-btn" 
+             onmousedown="startPowerTimer(event)" 
+             onmouseup="endPowerTimer(event)" 
+             ontouchstart="startPowerTimer(event)" 
+             ontouchend="endPowerTimer(event)"></div>
+
+        <div class="screen-container">
+            <div id="boot-screen">
+                <div class="orbit-container">
+                    <div class="orbit-ring"></div>
+                    <div class="orbit-ring delay"></div>
+                    <div class="boot-logo">RANDOM OS</div>
+                </div>
+            </div>
+
+            <div id="power-menu">
+                <div class="power-option red" onclick="systemShutdown()">Shutdown</div>
+                <div class="power-option" onclick="systemRestart()">Restart</div>
+                <div class="power-option" onclick="closePowerMenu()">Back</div>
+            </div>
+
+            <div class="status-bar">
+                <div id="status-time">00:00</div>
+                <div class="status-right">
+                    <span>5G</span>
+                    <div class="battery-icon"><div class="battery-level" id="battery-fill"></div></div>
+                </div>
+            </div>
+
+            <div class="status-trigger" onclick="toggleCC(true)"></div>
+            <div class="punch-hole" id="island">
+                <span id="island-text">Device is charging 100%</span>
+            </div>
+            
+            <div id="black-overlay"></div>
+            <div id="brightness-overlay"></div>
+            
+            <div class="wallpaper" id="main-wallpaper"></div>
+
+            <div id="control-center">
+                <div class="cc-grid">
+                    <div class="cc-btn" id="wifi-btn" onclick="toggleCCBtn('wifi-btn')"> Wi-Fi</div>
+                    <div class="cc-btn" id="bt-btn" onclick="toggleCCBtn('bt-btn')"> Bluetooth</div>
+                </div>
+                <div class="cc-slider">
+                    <label style="font-size: 0.8rem; font-weight: 600;">Brightness</label>
+                    <input type="range" min="0" max="100" value="100" oninput="adjustBrightness(this.value)">
+                </div>
+                <div style="flex-grow: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px; color: rgba(255,255,255,0.4); font-size: 2rem; cursor: pointer;" onclick="toggleCC(false)">︿</div>
+            </div>
+
+            <div id="lock-screen" class="screen active">
+                <div class="time" id="clock-large">00:00</div>
+                <div class="date">Friday, April 10</div>
+            </div>
+
+            <div id="home-screen" class="screen hidden" ondragover="allowDrop(event)" ondrop="dropApp(event)">
+                    <div class="app" 
+                         id="app-settings"
+                         style="top: 60px; left: 20px;"
+                         onmousedown="startAppHold(event, this, false)" 
+                         onmouseup="endAppHold(event, this)" 
+                         ontouchstart="startAppHold(event, this, false)"
+                         ontouchend="endAppHold(event, this)"
+                         onclick="openAppWithOrigin(this, 'settings-main')"
+                         ondragstart="dragApp(event)"
+                         data-app-id="settings">
+                        <div class="icon">⚙️</div>
+                        <span>Settings</span>
+                    </div>
+
+                    <div class="app empty-app" 
+                         id="app-empty-1"
+                         style="top: 60px; left: 110px;"
+                         onmousedown="startAppHold(event, this, true)" 
+                         onmouseup="endAppHold(event, this)" 
+                         ontouchstart="startAppHold(event, this, true)"
+                         ontouchend="endAppHold(event, this)"
+                         onclick="openAppWithOrigin(this, 'empty-app-1')"
+                         ondragstart="dragApp(event)"
+                         data-app-id="empty-1">
+                        <div class="delete-btn" onclick="deleteApp(event, this)">×</div>
+                        <div class="icon" style="background: #E0E0E0;"></div>
+                        <span>Empty App 1</span>
+                    </div>
+
+                    <div class="app empty-app" 
+                         id="app-empty-2"
+                         style="top: 60px; left: 200px;"
+                         onmousedown="startAppHold(event, this, true)" 
+                         onmouseup="endAppHold(event, this)" 
+                         ontouchstart="startAppHold(event, this, true)"
+                         ontouchend="endAppHold(event, this)"
+                         onclick="openAppWithOrigin(this, 'empty-app-2')"
+                         ondragstart="dragApp(event)"
+                         data-app-id="empty-2">
+                        <div class="delete-btn" onclick="deleteApp(event, this)">×</div>
+                        <div class="icon" style="background: #E0E0E0;"></div>
+                        <span>Empty App 2</span>
+                    </div>
+            </div>
+
+            <div id="empty-app-1" class="app-window">
+                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; opacity: 0.5;">none</div>
+            </div>
+
+            <div id="empty-app-2" class="app-window">
+                <div style="height: 100%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; opacity: 0.5;">none</div>
+            </div>
+
+            <div id="settings-main" class="app-window">
+                <h1 style="margin-bottom: 25px;">Settings</h1>
+                <div class="settings-item" onclick="showSubPage('nav-settings')">
+                    <span>Navigation Bar</span>
+                    <span>❯</span>
+                </div>
+                <div class="settings-item" onclick="showSubPage('custom-page')">
+                    <span>Customization</span>
+                    <span>❯</span>
+                </div>
+                <div class="settings-item" onclick="showSubPage('about-page')">
+                    <span>About</span>
+                    <span>❯</span>
+                </div>
+                <div id="dev-opt-item" class="settings-item" style="display:none;" onclick="showSubPage('dev-settings')">
+                    <span>Developer Options</span>
+                    <span>❯</span>
+                </div>
+            </div>
+
+            <div id="dev-settings" class="app-window">
+                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
+                <h1 style="text-align: center; margin-bottom: 10px;">Animation Speed</h1>
+                <div class="dev-btn-group">
+                    <button class="dev-speed-btn" id="speed-slow" onclick="setAnimSpeed('1.2s', 'slow')">Slow</button>
+                    <button class="dev-speed-btn active" id="speed-normal" onclick="setAnimSpeed('0.5s', 'normal')">Normal</button>
+                    <button class="dev-speed-btn" id="speed-fast" onclick="setAnimSpeed('0.2s', 'fast')">Fast</button>
+                </div>
+            </div>
+
+            <div id="nav-settings" class="app-window">
+                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
+                <h2 style="margin-bottom: 20px;">Navigation Style</h2>
+                <div class="settings-item" onclick="setNavStyle('swipe')">
+                    <span>Swipe Navigation</span>
+                    <span id="check-swipe">✓</span>
+                </div>
+                <div class="settings-item" onclick="setNavStyle('buttons')">
+                    <span>3-Button Navigation</span>
+                    <span id="check-buttons" style="display:none;">✓</span>
+                </div>
+            </div>
+
+            <div id="custom-page" class="app-window">
+                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
+                <h1 style="margin-bottom: 25px;">Customization</h1>
+                <p style="font-size: 0.8rem; margin-bottom: 10px; opacity: 0.7;">Wallpaper</p>
+                <div class="settings-item" onclick="triggerFileSelect()">
+                    <span>Change Wallpaper</span>
+                </div>
+                <p style="font-size: 0.8rem; margin-top: 20px; margin-bottom: 10px; opacity: 0.7;">System Theme</p>
+                <div class="settings-item" onclick="setTheme('light')">
+                    <span>Light Mode</span>
+                    <span id="check-light" style="display:none;">✓</span>
+                </div>
+                <div class="settings-item" onclick="setTheme('dark')">
+                    <span>Dark Mode</span>
+                    <span id="check-dark">✓</span>
+                </div>
+            </div>
+
+            <div id="about-page" class="app-window">
+                <div class="back-btn" onclick="showSubPage('settings-main')">❮ Back</div>
+                <div id="about-content" style="height: 80%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 0; text-align: center;">
+                    <div class="about-main-text" style="font-size: 1.5rem; font-weight: 800; margin-top: 100px; cursor: pointer;" onclick="handleAboutClick()">RandomOS 1.0 Beta</div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; font-size: 0.85rem; color: #8e8e93; padding: 0 10px;">
+                        <span>Phone Name</span>
+                        <span>rPhone 1 pro</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="nav-container">
+                <div id="unlock-trigger" onclick="handleHomeAction()"></div>
+                <div id="home-bar" onclick="handleHomeAction()" style="display:none;"></div>
+                <div id="three-buttons">
+                    <div class="nav-btn" onclick="handleBackAction()">◂</div>
+                    <div class="nav-btn" onclick="handleHomeAction()">●</div>
+                    <div class="nav-btn" onclick="handleRecentAction()">■</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="wallpaper-input" hidden accept="image/*">
+
+    <script>
+        let isPhoneSleeping = false; 
+        let isCompletelyShutdown = false; 
+        let currentNavMode = 'swipe';
+        let powerTimer;
+        let pressStartTime;
+        let aboutClicks = 0;
+        let isDevMode = false;
+
+        let appHoldTimer;
+        let isHolding = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        const wallpaperLayer = document.getElementById('main-wallpaper');
+        const wallpaperInput = document.getElementById('wallpaper-input');
+
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('status-time').innerText = timeStr;
+            document.getElementById('clock-large').innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function startAppHold(e, el, isEmptyApp) {
+            isHolding = true;
+            appHoldTimer = setTimeout(() => {
+                if(!isHolding) return;
+                el.setAttribute('draggable', 'true');
+                el.classList.add('jiggle');
+                
+                appHoldTimer = setTimeout(() => {
+                    if(!isHolding || !isEmptyApp) return;
+                    const deleteBtn = el.querySelector('.delete-btn');
+                    if(deleteBtn) deleteBtn.style.display = 'flex';
+                }, 800); 
+            }, 800);
+        }
+
+        function endAppHold(e, el) {
+            isHolding = false;
+            clearTimeout(appHoldTimer);
+        }
+
+        // DRAG LOGIC: Captures where you clicked the icon to prevent jumping
+        function dragApp(e) {
+            e.dataTransfer.setData("text", e.target.id);
+            const rect = e.target.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+        }
+
+        // DROP LOGIC: Places app at exact coordinates
+        function dropApp(e) {
+            e.preventDefault();
+            const data = e.dataTransfer.getData("text");
+            const draggedApp = document.getElementById(data);
+            const homeScreen = document.getElementById('home-screen');
+            const homeRect = homeScreen.getBoundingClientRect();
+
+            // Calculate new position relative to the screen
+            let newX = e.clientX - homeRect.left - dragOffsetX;
+            let newY = e.clientY - homeRect.top - dragOffsetY;
+
+            draggedApp.style.left = newX + 'px';
+            draggedApp.style.top = newY + 'px';
+        }
+
+        function openAppWithOrigin(el, windowId) {
+            // Prevent opening if jiggling (editing mode)
+            if(el.classList.contains('jiggle')) return;
+            
+            document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
+            document.getElementById(windowId).classList.add('open');
+            wallpaperLayer.classList.add('app-active');
+            updateNavVisibility();
+        }
+
+        function handleHomeAction() {
+            if (isPhoneSleeping || isCompletelyShutdown) return;
+            
+            const lock = document.getElementById('lock-screen');
+            const home = document.getElementById('home-screen');
+            
+            if (lock.classList.contains('active')) {
+                lock.classList.add('lock-unlocking');
+                setTimeout(() => {
+                    lock.classList.replace('active', 'hidden');
+                    home.classList.replace('hidden', 'active');
+                    home.classList.add('home-opening');
+                    updateNavVisibility();
+                }, 300);
+            } else {
+                // Exit editing mode
+                document.querySelectorAll('.app').forEach(a => {
+                    a.classList.remove('jiggle');
+                    a.removeAttribute('draggable');
+                    const del = a.querySelector('.delete-btn');
+                    if(del) del.style.display = 'none';
+                });
+                
+                // Close all windows
+                document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
+                wallpaperLayer.classList.remove('app-active');
+            }
+        }
+
+        function updateNavVisibility() {
+            const isLockActive = document.getElementById('lock-screen').classList.contains('active');
+            const bar = document.getElementById('home-bar');
+            const btns = document.getElementById('three-buttons');
+            const trigger = document.getElementById('unlock-trigger');
+
+            if (isLockActive) {
+                bar.style.display = 'none';
+                btns.style.display = 'none';
+                trigger.style.display = 'block';
+            } else {
+                trigger.style.display = 'none';
+                if (currentNavMode === 'swipe') {
+                    bar.style.display = 'block';
+                    btns.style.display = 'none';
+                } else {
+                    bar.style.display = 'none';
+                    btns.style.display = 'flex';
+                }
+            }
+        }
+
+        function deleteApp(e, el) {
+            e.preventDefault();
+            e.stopPropagation();
+            const appElement = el.closest('.app');
+            appElement.style.transform = "scale(0)";
+            appElement.style.opacity = "0";
+            setTimeout(() => appElement.remove(), 300);
+        }
+
+        function showSubPage(id) {
+            document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
+            document.getElementById(id).classList.add('open');
+        }
+
+        async function initBattery() {
+            if ('getBattery' in navigator) {
+                const battery = await navigator.getBattery();
+                function updateIsland() {
+                    const level = Math.round(battery.level * 100);
+                    const island = document.getElementById('island');
+                    const text = document.getElementById('island-text');
+                    const fill = document.getElementById('battery-fill');
+                    fill.style.width = level + "%";
+                    if (battery.charging) {
+                        text.innerText = `Device is charging ${level}%`;
+                        island.classList.add('charging-island');
+                        setTimeout(() => island.classList.remove('charging-island'), 3000);
+                    }
+                }
+                battery.addEventListener('chargingchange', updateIsland);
+                battery.addEventListener('levelchange', updateIsland);
+                updateIsland(); 
+            }
+        }
+        initBattery();
+
+        function setTheme(mode) {
+            const body = document.body;
+            if (mode === 'light') {
+                body.classList.remove('dark-theme'); body.classList.add('light-theme');
+                document.getElementById('check-light').style.display = 'block';
+                document.getElementById('check-dark').style.display = 'none';
+            } else {
+                body.classList.remove('light-theme'); body.classList.add('dark-theme');
+                document.getElementById('check-light').style.display = 'none';
+                document.getElementById('check-dark').style.display = 'block';
+            }
+        }
+
+        function handleAboutClick() {
+            if (isDevMode) return;
+            aboutClicks++;
+            if (aboutClicks >= 4) {
+                isDevMode = true;
+                const toast = document.getElementById('dev-toast');
+                toast.style.opacity = '1';
+                setTimeout(() => toast.style.opacity = '0', 2000);
+                document.getElementById('dev-opt-item').style.display = 'flex';
+            }
+        }
+
+        function setAnimSpeed(value, type) {
+            document.documentElement.style.setProperty('--anim-speed', value);
+            document.querySelectorAll('.dev-speed-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('speed-' + type).classList.add('active');
+        }
+
+        function startPowerTimer(e) {
+            pressStartTime = Date.now();
+            powerTimer = setTimeout(() => {
+                if (isCompletelyShutdown) bootSystem(); else showPowerMenu();
+            }, 2000);
+        }
+
+        function endPowerTimer(e) {
+            const duration = Date.now() - pressStartTime;
+            clearTimeout(powerTimer);
+            if (duration < 2000) {
+                if (isCompletelyShutdown) return; 
+                toggleSleep();
+            }
+        }
+
+        function toggleSleep() {
+            isPhoneSleeping = !isPhoneSleeping;
+            const overlay = document.getElementById('black-overlay');
+            if (isPhoneSleeping) {
+                overlay.style.display = 'block';
+                setTimeout(() => overlay.style.opacity = '1', 10);
+            } else {
+                resetToLockscreen();
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 800);
+            }
+        }
+
+        function resetToLockscreen() {
+            document.querySelectorAll('.app-window').forEach(win => win.classList.remove('open'));
+            wallpaperLayer.classList.remove('app-active');
+            const lock = document.getElementById('lock-screen');
+            const home = document.getElementById('home-screen');
+            lock.classList.remove('lock-unlocking');
+            home.classList.remove('home-opening');
+            home.classList.replace('active', 'hidden');
+            lock.classList.replace('hidden', 'active');
+            updateNavVisibility();
+            document.querySelectorAll('.app').forEach(a => {
+                a.classList.remove('jiggle');
+                a.removeAttribute('draggable');
+                const del = a.querySelector('.delete-btn');
+                if(del) del.style.display = 'none';
+            });
+        }
+
+        function showPowerMenu() {
+            if (isPhoneSleeping) toggleSleep();
+            document.getElementById('power-menu').style.display = 'flex';
+        }
+
+        function closePowerMenu() { document.getElementById('power-menu').style.display = 'none'; }
+        
+        function systemShutdown() {
+            closePowerMenu();
+            isCompletelyShutdown = true;
+            const overlay = document.getElementById('black-overlay');
+            overlay.style.display = 'block';
+            overlay.style.opacity = '1';
+        }
+
+        function bootSystem() {
+            isCompletelyShutdown = false;
+            const boot = document.getElementById('boot-screen');
+            boot.style.display = 'flex';
+            setTimeout(() => {
+                boot.style.display = 'none';
+                toggleSleep();
+                toggleSleep();
+            }, 5000);
+        }
+
+        function systemRestart() {
+            systemShutdown();
+            setTimeout(bootSystem, 1000);
+        }
+
+        function setNavStyle(style) {
+            currentNavMode = style;
+            document.getElementById('check-swipe').style.display = style === 'swipe' ? 'block' : 'none';
+            document.getElementById('check-buttons').style.display = style === 'buttons' ? 'block' : 'none';
+            updateNavVisibility();
+        }
+
+        function toggleCC(show) {
+            const cc = document.getElementById('control-center');
+            if (show) cc.classList.add('open'); else cc.classList.remove('open');
+        }
+
+        function toggleCCBtn(id) { document.getElementById(id).classList.toggle('active'); }
+        function adjustBrightness(val) { document.getElementById('brightness-overlay').style.opacity = (100 - val) / 100; }
+        function triggerFileSelect() { wallpaperInput.click(); }
+
+        wallpaperInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                wallpaperLayer.style.backgroundImage = `url(${url})`;
+            }
+        };
+
+        function handleBackAction() {
+             const openWin = document.querySelector('.app-window.open');
+             if(openWin && openWin.id !== 'settings-main' && openWin.id !== 'empty-app-1' && openWin.id !== 'empty-app-2') {
+                 showSubPage('settings-main');
+             } else {
+                 handleHomeAction();
+             }
+        }
+        function handleRecentAction() { alert("Recents not implemented in Beta"); }
+
+    </script>
+</body>
+</html>
