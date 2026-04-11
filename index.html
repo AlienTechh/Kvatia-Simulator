@@ -9,30 +9,33 @@
             margin: 0; padding: 0;
             width: 100%; height: 100%;
             overflow: hidden; 
-            background-color: #0a0a0a;
+            background-color: #ffffff; /* Site background set to white */
             display: flex; justify-content: center; align-items: center;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Hardware Bezels - Deep Black */
         .phone-container {
             width: 320px; height: 650px;
             background: #000;
-            border: 12px solid #1a1a1a;
+            border: 14px solid #000000; /* Bezels made black */
             border-radius: 55px;
             position: relative;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
         }
 
         .power-btn {
             width: 4px; height: 60px; background: #ff3b30;
-            position: absolute; right: -16px; top: 120px;
+            position: absolute; right: -18px; top: 120px;
             border-radius: 0 5px 5px 0; cursor: pointer; z-index: 100;
         }
 
+        /* Punch Hole - Black and Bigger */
         .punch-hole {
-            width: 12px; height: 12px; background: #1a1a1a;
+            width: 18px; height: 18px; /* Bigger punch hole */
+            background: #000000;
             border-radius: 50%; position: absolute; top: 15px;
             left: 50%; transform: translateX(-50%); z-index: 95;
         }
@@ -40,7 +43,7 @@
         .screen {
             width: 100%; height: 100%;
             background: #000; position: relative;
-            border-radius: 43px; overflow: hidden;
+            border-radius: 41px; overflow: hidden;
         }
 
         /* Wallpaper System */
@@ -48,11 +51,9 @@
             position: absolute; width: 100%; height: 100%;
             background-size: cover; background-position: center;
             transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.8s ease;
-            z-index: 1;
-            background-color: #1a1a1a; /* Default color if no image */
+            z-index: 1; background-color: #1a1a1a;
         }
 
-        /* When an app is open, zoom and blur the wallpaper */
         .wallpaper.app-active {
             transform: scale(1.15);
             filter: blur(15px) brightness(0.7);
@@ -61,17 +62,15 @@
         #power-overlay {
             position: absolute; width: 100%; height: 100%;
             background: black; z-index: 90; pointer-events: none;
-            transition: opacity 0.6s ease-in-out;
-            opacity: 1;
+            transition: opacity 0.6s ease-in-out; opacity: 1;
         }
 
         .view {
             display: none; width: 100%; height: 100%;
             position: absolute; flex-direction: column;
-            color: white; border-radius: 43px; z-index: 10;
+            color: white; border-radius: 41px; z-index: 10;
         }
 
-        /* Home Screen */
         #homescreen {
             padding-top: 60px;
             transform: scale(1.3); opacity: 0;
@@ -82,15 +81,15 @@
         .app-icon {
             width: 55px; height: 55px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; background: rgba(255,255,255,0.2);
+            font-size: 20px; background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
         }
 
-        /* Settings & Customization */
+        /* Settings App */
         #settings-app {
-            display: flex; background: rgba(0,0,0,0.6); z-index: 40;
-            backdrop-filter: blur(20px); overflow: hidden;
-            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease;
+            display: flex; background: rgba(0,0,0,0.7); z-index: 40;
+            backdrop-filter: blur(25px); overflow: hidden;
+            transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease;
             transform: scale(0); opacity: 0; pointer-events: none;
             transform-origin: 40px 100px;
         }
@@ -101,25 +100,25 @@
         .settings-header { padding: 50px 20px 20px; font-size: 24px; font-weight: bold; }
         .settings-item { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; cursor: pointer; }
 
-        /* Wallpaper Modal */
+        /* Modal */
         #wallpaper-modal {
             position: absolute; bottom: 0; width: 100%; background: #1c1c1e;
             border-radius: 25px 25px 0 0; padding: 20px; box-sizing: border-box;
             transform: translateY(100%); transition: transform 0.4s ease; z-index: 100;
         }
         #wallpaper-modal.active { transform: translateY(0); }
-        .modal-btn { padding: 15px; text-align: center; border-bottom: 1px solid #333; color: #007aff; cursor: pointer; }
+        .modal-btn { padding: 15px; text-align: center; border-bottom: 1px solid #333; color: #007aff; cursor: pointer; font-weight: 500;}
         .modal-btn.cancel { color: #ff3b30; border-bottom: none; }
 
         #home-bar {
             width: 110px; height: 4px; background: rgba(255, 255, 255, 0.5);
-            border-radius: 10px; position: absolute; bottom: 8px;
+            border-radius: 10px; position: absolute; bottom: 10px;
             left: 50%; transform: translateX(-50%); z-index: 100;
             cursor: pointer; opacity: 0; transition: opacity 0.4s;
         }
 
         #lockscreen { padding-top: 80px; align-items: center; background: transparent; }
-        #time { font-size: 3.8rem; font-weight: 200; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        #time { font-size: 3.8rem; font-weight: 200; text-shadow: 0 2px 15px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
@@ -142,7 +141,7 @@
                 <div style="padding: 20px;">
                     <div onclick="openSettings()" style="cursor:pointer; width: 60px;">
                         <div class="app-icon">⚙️</div>
-                        <p style="font-size: 10px; text-align: center; margin-top: 5px;">Settings</p>
+                        <p style="font-size: 10px; text-align: center; margin-top: 5px; color: white;">Settings</p>
                     </div>
                 </div>
             </div>
@@ -151,27 +150,28 @@
                 <div class="settings-content-wrapper" id="settings-nav">
                     <div class="settings-page">
                         <div class="settings-header">Settings</div>
-                        <div class="settings-item" onclick="goToPage(1)">Customization <span>></span></div>
                         <div class="settings-item" onclick="goToPage(2)">About Phone <span>></span></div>
+                        <div class="settings-item" onclick="goToPage(1)">Customization <span>></span></div>
                     </div>
                     <div class="settings-page">
                         <div class="settings-header"><span onclick="goToPage(0)" style="color:#007aff; cursor:pointer">❮ Back</span></div>
                         <div style="padding: 20px;">
-                            <p style="color: #888; font-size: 14px;">Choose a wallpaper</p>
-                            <button onclick="document.getElementById('wp-input').click()" style="width:100%; padding: 15px; border-radius: 10px; border:none; background:#333; color:white;">Select Photo</button>
+                            <p style="color: #bbb; font-size: 14px; margin-bottom: 15px;">Choose a wallpaper</p>
+                            <button onclick="document.getElementById('wp-input').click()" style="width:100%; padding: 15px; border-radius: 12px; border:none; background:rgba(255,255,255,0.1); color:white; cursor:pointer;">Select Photo</button>
                             <input type="file" id="wp-input" hidden accept="image/*" onchange="handleFile(this)">
                         </div>
                     </div>
                     <div class="settings-page">
                         <div class="settings-header"><span onclick="goToPage(0)" style="color:#007aff; cursor:pointer">❮ Back</span></div>
-                        <p style="text-align:center; font-size: 22px; margin-top: 20px;">RandomOS 1.0</p>
+                        <p style="text-align:center; font-size: 22px; margin-top: 20px; font-weight: 700;">RandomOS 1.0</p>
                         <div class="settings-item"><span style="color:#888">Phone Name</span><span>rPhone 1 Pro</span></div>
+                        <div class="settings-item"><span style="color:#888">Version</span><span>Beta 1.0</span></div>
                     </div>
                 </div>
             </div>
 
             <div id="wallpaper-modal">
-                <p style="color:white; text-align:center; font-size:12px; margin-bottom:15px;">Choose where you want to change wallpaper</p>
+                <p style="color:#888; text-align:center; font-size:13px; margin-bottom:15px;">Choose where you want to change wallpaper</p>
                 <div class="modal-btn" onclick="applyWP('lock')">Lockscreen</div>
                 <div class="modal-btn" onclick="applyWP('home')">Home screen</div>
                 <div class="modal-btn" onclick="applyWP('both')">Both</div>
@@ -235,12 +235,19 @@
             homeWP.classList.add('app-active');
         }
 
-        function goToPage(num) { document.getElementById('settings-nav').style.transform = `translateX(-${num * 33.33}%)`; }
+        function goToPage(num) { 
+            document.getElementById('settings-nav').style.transform = `translateX(-${num * 33.33}%)`; 
+        }
 
         function handleFile(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => { tempImg = e.target.result; document.getElementById('wallpaper-modal').classList.add('active'); };
-            reader.readAsDataURL(input.files[0]);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => { 
+                    tempImg = e.target.result; 
+                    document.getElementById('wallpaper-modal').classList.add('active'); 
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         function applyWP(type) {
