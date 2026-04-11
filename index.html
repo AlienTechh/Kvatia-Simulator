@@ -430,25 +430,36 @@
             }
         }
 
-        // --- NEW DOWNLOAD LOGIC ---
+        // --- UPDATED DOWNLOAD LOGIC ---
         function triggerOSDownload() {
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
             const status = document.getElementById('dl-status');
-            const fileName = isMobile ? "RandomOS_v1.0.apk" : "RandomOS_v1.0.exe";
             
-            status.textContent = `Preparing ${fileName}...`;
+            // PUT YOUR REAL LINKS HERE:
+            const pcLink = "https://yourwebsite.com/RandomOS_Setup.exe"; 
+            const mobileLink = "https://yourwebsite.com/RandomOS.apk";
+
+            status.textContent = "Connecting to download server...";
 
             setTimeout(() => {
-                const blob = new Blob(["RandomOS Installer File"], { type: "application/octet-stream" });
-                const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
-                a.href = url;
-                a.download = fileName;
+                
+                if (isMobile) {
+                    status.textContent = "Downloading RandomOS for Mobile...";
+                    a.href = mobileLink;
+                    a.download = "RandomOS.apk";
+                } else {
+                    status.textContent = "Downloading RandomOS for PC...";
+                    a.href = pcLink;
+                    a.download = "RandomOS_Setup.exe";
+                }
+
                 document.body.appendChild(a);
                 a.click();
-                window.URL.revokeObjectURL(url);
-                status.textContent = "Download complete!";
+                document.body.removeChild(a);
+                
+                status.textContent = "Download started! Check your folder.";
             }, 1000);
         }
 
@@ -483,40 +494,3 @@
     </script>
 </body>
 </html>
-
-<script>
-    // ... (Keep all your existing power, home, camera, and settings functions) ...
-
-    // --- UPDATED DOWNLOAD LOGIC ---
-    function triggerOSDownload() {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const status = document.getElementById('dl-status');
-        
-        // 1. REPLACE THESE LINKS with your actual file URLs
-        const pcLink = "https://yourwebsite.com/RandomOS_Setup.exe"; 
-        const mobileLink = "https://yourwebsite.com/RandomOS.apk";
-
-        status.textContent = "Connecting to server...";
-
-        setTimeout(() => {
-            const downloadLink = document.createElement('a');
-            
-            if (isMobile) {
-                status.textContent = "Downloading RandomOS for Mobile...";
-                downloadLink.href = mobileLink;
-                downloadLink.download = "RandomOS.apk";
-            } else {
-                status.textContent = "Downloading RandomOS for PC...";
-                downloadLink.href = pcLink;
-                downloadLink.download = "RandomOS_Setup.exe";
-            }
-
-            // This part triggers the browser's real download manager
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-            
-            status.textContent = "Check your browser downloads!";
-        }, 1000);
-    }
-</script>
