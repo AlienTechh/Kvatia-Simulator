@@ -15,6 +15,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            transition: filter 0.5s ease;
         }
 
         .phone-container {
@@ -99,6 +100,24 @@
             display: flex; flex-direction: column; align-items: center; cursor: pointer;
         }
 
+        /* CHAOS MODE ANIMATION */
+        @keyframes floatChaos {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(10px, -15px) rotate(5deg); }
+            50% { transform: translate(-10px, 10px) rotate(-10deg); }
+            75% { transform: translate(15px, 5px) rotate(8deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .chaos-active .app-icon-container {
+            animation: floatChaos 3s infinite ease-in-out;
+        }
+
+        .chaos-active .app-icon-container:nth-child(even) {
+            animation-duration: 4.5s;
+            animation-direction: reverse;
+        }
+
         .app-icon {
             width: 55px; height: 55px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
@@ -111,7 +130,6 @@
             text-shadow: 0 1px 3px rgba(0,0,0,0.5);
         }
 
-        /* Settings App Styles */
         #settings-app {
             display: flex; background: rgba(0,0,0,0.7); z-index: 40;
             backdrop-filter: blur(25px); overflow: hidden;
@@ -123,9 +141,8 @@
         .settings-content-wrapper { display: flex; width: 400%; height: 100%; transition: transform 0.5s ease; }
         .settings-page { width: 25%; height: 100%; display: flex; flex-direction: column; }
         .settings-header { padding: 50px 20px 20px; font-size: 24px; font-weight: bold; }
-        .settings-item { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; cursor: pointer; }
+        .settings-item { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; cursor: pointer; align-items: center; }
 
-        /* Camera App Styles */
         #camera-app {
             display: flex; background: #000; z-index: 50; overflow: hidden;
             transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
@@ -135,7 +152,6 @@
         #camera-app.open { transform: scale(1); opacity: 1; pointer-events: auto; }
         #camera-feed {
             width: 100%; height: 100%; object-fit: cover;
-            transform: scaleX(1); 
         }
         .camera-ui {
             position: absolute; bottom: 40px; width: 100%;
@@ -155,15 +171,12 @@
             justify-content: center; align-items: center; font-size: 20px; cursor: pointer;
             backdrop-filter: blur(5px);
         }
-        .cam-error {
-            position: absolute; top: 50%; width: 100%; text-align: center;
-            color: white; padding: 20px; box-sizing: border-box; display: none;
-        }
 
         #toast {
             position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(255,255,255,0.9); color: black; padding: 8px 16px;
             border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 110;
+            white-space: nowrap;
         }
 
         #home-bar {
@@ -174,6 +187,22 @@
         }
 
         #time { font-size: 3.8rem; font-weight: 200; text-shadow: 0 2px 15px rgba(0,0,0,0.4); margin-top: 80px; text-align: center;}
+    
+        /* Chaos Toggle Switch */
+        .switch {
+            position: relative; display: inline-block; width: 40px; height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ff3b30; }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
@@ -194,7 +223,7 @@
             </div>
 
             <div id="homescreen" class="view">
-                <div class="app-grid">
+                <div class="app-grid" id="main-grid">
                     <div class="app-icon-container" onclick="openSettings()">
                         <div class="app-icon">⚙️</div>
                         <p class="app-label">Settings</p>
@@ -229,9 +258,14 @@
                     </div>
                     <div class="settings-page">
                         <div class="settings-header"><span onclick="goToPage(0)" style="color:#007aff; cursor:pointer">❮ Back</span></div>
-                        <div style="flex:1; display:flex; justify-content:center; align-items:center;">
-                            <h1 style="font-size: 40px; color: #444;">none</h1>
+                        <div class="settings-item">
+                            <span>Chaos Mode</span>
+                            <label class="switch">
+                                <input type="checkbox" id="chaos-toggle" onchange="toggleChaos(this)">
+                                <span class="slider"></span>
+                            </label>
                         </div>
+                        <p style="padding: 20px; color: #666; font-size: 12px;">Warning: Chaos Mode may cause visual instability and floating icons.</p>
                     </div>
                 </div>
             </div>
@@ -240,37 +274,31 @@
                 <video id="camera-feed" autoplay playsinline></video>
                 <canvas id="camera-canvas" style="display:none;"></canvas>
                 <div id="cam-error" class="cam-error">Camera access denied or not found.</div>
-                
                 <div class="camera-ui">
                     <div class="shutter-btn" onclick="takePhoto()"></div>
                     <div class="flip-btn" onclick="flipCamera()">🔄</div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
-        let isPowerOn = false, isUnlocked = false, clickCount = 0, devActive = false;
+        let isPowerOn = false, isUnlocked = false, clickCount = 0, devActive = false, chaosInterval;
         let audioPrimed = false;
         const lockWP = document.getElementById('lock-wp'), homeWP = document.getElementById('home-wp');
+        const mainGrid = document.getElementById('main-grid');
 
         let currentStream = null;
         let facingMode = "environment"; 
 
-        // --- SOUND EFFECTS CONFIG ---
         const powerSound = new Audio('mixkit-mouse-click-close-1113.wav');
         const shutterSound = new Audio('mixkit-camera-lens-shutter-1433.wav');
         const unlockSound = new Audio('windows-8-8-1-startup-sound.mp3');
 
         function togglePower() {
-            // Prime audio on first interaction to bypass browser autoplay blocks
             if (!audioPrimed) {
                 [powerSound, shutterSound, unlockSound].forEach(s => {
-                    s.play().then(() => {
-                        s.pause();
-                        s.currentTime = 0;
-                    }).catch(e => console.log("Audio priming pending..."));
+                    s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
                 });
                 audioPrimed = true;
             }
@@ -281,15 +309,11 @@
             isPowerOn = !isPowerOn;
             document.getElementById('power-overlay').style.opacity = isPowerOn ? '0' : '1';
             document.getElementById('home-bar').style.opacity = isPowerOn ? '1' : '0';
+            
             if (isPowerOn) {
                 document.getElementById('lockscreen').style.display = 'flex';
-                if (!isUnlocked) {
-                    lockWP.style.display = 'block';
-                    homeWP.style.display = 'none';
-                } else {
-                    lockWP.style.display = 'none';
-                    homeWP.style.display = 'block';
-                }
+                lockWP.style.display = isUnlocked ? 'none' : 'block';
+                homeWP.style.display = isUnlocked ? 'block' : 'none';
                 updateClock();
             } else {
                 setTimeout(() => {
@@ -323,13 +347,26 @@
             } else if (isPowerOn && !isUnlocked) {
                 unlockSound.currentTime = 0;
                 unlockSound.play();
-                
                 isUnlocked = true;
                 document.getElementById('lockscreen').style.display = 'none';
                 document.getElementById('homescreen').style.display = 'flex';
                 lockWP.style.display = 'none';
                 homeWP.style.display = 'block';
                 requestAnimationFrame(() => document.getElementById('homescreen').classList.add('unlocked'));
+            }
+        }
+
+        // CHAOS MODE LOGIC
+        function toggleChaos(toggle) {
+            if (toggle.checked) {
+                mainGrid.classList.add('chaos-active');
+                chaosInterval = setInterval(() => {
+                    document.body.style.filter = Math.random() > 0.5 ? 'invert(1)' : 'invert(0)';
+                }, 2000);
+            } else {
+                mainGrid.classList.remove('chaos-active');
+                clearInterval(chaosInterval);
+                document.body.style.filter = 'invert(0)';
             }
         }
 
@@ -349,26 +386,12 @@
         async function startCamera() {
             if (currentStream) stopCamera(); 
             const videoElement = document.getElementById('camera-feed');
-            const errorText = document.getElementById('cam-error');
-            errorText.style.display = 'none';
-
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: facingMode }
-                });
-                
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
                 currentStream = stream;
                 videoElement.srcObject = stream;
-
-                if (facingMode === "user") {
-                    videoElement.style.transform = "scaleX(-1)";
-                } else {
-                    videoElement.style.transform = "scaleX(1)";
-                }
-
             } catch (err) {
-                console.error("Camera error:", err);
-                errorText.style.display = 'block';
+                document.getElementById('cam-error').style.display = 'block';
             }
         }
 
@@ -387,36 +410,9 @@
         function takePhoto() {
             shutterSound.currentTime = 0;
             shutterSound.play();
-
-            const video = document.getElementById('camera-feed');
-            const canvas = document.getElementById('camera-canvas');
-            const context = canvas.getContext('2d');
-
             const app = document.getElementById('camera-app');
             app.style.opacity = '0.5';
             setTimeout(() => { app.style.opacity = '1'; }, 100);
-
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
-            if (facingMode === "user") {
-                context.translate(canvas.width, 0);
-                context.scale(-1, 1);
-            }
-
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            try {
-                const imageData = canvas.toDataURL("image/png");
-                const downloadLink = document.createElement('a');
-                downloadLink.href = imageData;
-                downloadLink.download = `RandomOS_Photo_${Date.now()}.png`;
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            } catch (e) {
-                console.error("Save failed", e);
-            }
         }
 
         function goToPage(num) { document.getElementById('settings-nav').style.transform = `translateX(-${num * 25}%)`; }
@@ -433,11 +429,10 @@
         function handleDevClick() {
             if (devActive) return;
             clickCount++;
-            if (clickCount === 6) {
+            if (clickCount >= 6) {
                 devActive = true;
                 document.getElementById('dev-opt-item').style.display = 'flex';
                 const toast = document.getElementById('toast');
-                toast.textContent = "developer options activated";
                 toast.style.opacity = '1';
                 setTimeout(() => toast.style.opacity = '0', 2000);
             }
