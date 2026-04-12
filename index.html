@@ -100,7 +100,6 @@
             display: flex; flex-direction: column; align-items: center; cursor: pointer;
         }
 
-        /* CHAOS MODE ANIMATION */
         @keyframes floatChaos {
             0% { transform: translate(0, 0) rotate(0deg); }
             25% { transform: translate(10px, -15px) rotate(5deg); }
@@ -113,17 +112,34 @@
             animation: floatChaos 3s infinite ease-in-out;
         }
 
-        .chaos-active .app-icon-container:nth-child(even) {
-            animation-duration: 4.5s;
-            animation-direction: reverse;
-        }
-
         .app-icon {
             width: 55px; height: 55px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             font-size: 24px; background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
         }
+
+        /* Folder Icon Styling */
+        .folder-preview {
+            display: grid; grid-template-columns: repeat(2, 1fr); 
+            gap: 4px; padding: 8px; box-sizing: border-box;
+        }
+        .mini-dot { background: white; border-radius: 3px; }
+
+        #folder-overlay {
+            position: absolute; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 150;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        #folder-window {
+            width: 240px; background: rgba(255,255,255,0.2);
+            border-radius: 40px; padding: 25px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+            transform: scale(0.8); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #folder-window.open { transform: scale(1); opacity: 1; }
 
         .app-label {
             font-size: 11px; text-align: center; margin-top: 5px; color: white;
@@ -150,57 +166,27 @@
             transform-origin: 120px 100px;
         }
         #camera-app.open { transform: scale(1); opacity: 1; pointer-events: auto; }
-        #camera-feed {
-            width: 100%; height: 100%; object-fit: cover;
-        }
-        .camera-ui {
-            position: absolute; bottom: 40px; width: 100%;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 60;
-        }
-        .shutter-btn {
-            width: 65px; height: 65px; background: white; border-radius: 50%;
-            border: 4px solid #333; outline: 2px solid white; cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .shutter-btn:active { transform: scale(0.9); }
-
-        .flip-btn {
-            position: absolute; right: 30px; background: rgba(0,0,0,0.5);
-            width: 40px; height: 40px; border-radius: 50%; display: flex;
-            justify-content: center; align-items: center; font-size: 20px; cursor: pointer;
-            backdrop-filter: blur(5px);
-        }
+        #camera-feed { width: 100%; height: 100%; object-fit: cover; }
 
         #toast {
             position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(255,255,255,0.9); color: black; padding: 8px 16px;
-            border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 110;
-            white-space: nowrap;
+            border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 200;
         }
 
         #home-bar {
             width: 110px; height: 4px; background: rgba(255, 255, 255, 0.5);
             border-radius: 10px; position: absolute; bottom: 10px;
-            left: 50%; transform: translateX(-50%); z-index: 100;
+            left: 50%; transform: translateX(-50%); z-index: 210;
             cursor: pointer; opacity: 0; transition: opacity 0.4s;
         }
 
         #time { font-size: 3.8rem; font-weight: 200; text-shadow: 0 2px 15px rgba(0,0,0,0.4); margin-top: 80px; text-align: center;}
     
-        /* Chaos Toggle Switch */
-        .switch {
-            position: relative; display: inline-block; width: 40px; height: 20px;
-        }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333; transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px;
-            background-color: white; transition: .4s; border-radius: 50%;
-        }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #ff3b30; }
         input:checked + .slider:before { transform: translateX(20px); }
     </style>
@@ -218,6 +204,23 @@
             <div id="home-wp" class="wallpaper" style="display:none"></div>
             <div id="power-overlay"></div>
 
+            <div id="folder-overlay" onclick="toggleFolder(false)">
+                <div id="folder-window" onclick="event.stopPropagation()">
+                    <div class="app-icon-container" onclick="alert('Social App 1')">
+                        <div class="app-icon">💬</div>
+                        <p class="app-label">Chat</p>
+                    </div>
+                    <div class="app-icon-container" onclick="alert('Social App 2')">
+                        <div class="app-icon">📸</div>
+                        <p class="app-label">Photos</p>
+                    </div>
+                    <div class="app-icon-container" onclick="alert('Social App 3')">
+                        <div class="app-icon">🎮</div>
+                        <p class="app-label">Games</p>
+                    </div>
+                </div>
+            </div>
+
             <div id="lockscreen" class="view">
                 <p id="time">00:00</p>
             </div>
@@ -232,6 +235,16 @@
                     <div class="app-icon-container" onclick="openCamera()">
                         <div class="app-icon" style="background: rgba(200, 200, 200, 0.3);">📷</div>
                         <p class="app-label">Camera</p>
+                    </div>
+
+                    <div class="app-icon-container" onclick="toggleFolder(true)">
+                        <div class="app-icon folder-preview" style="background: rgba(255,255,255,0.25);">
+                            <div class="mini-dot"></div>
+                            <div class="mini-dot"></div>
+                            <div class="mini-dot"></div>
+                            <div class="mini-dot"></div>
+                        </div>
+                        <p class="app-label">Social</p>
                     </div>
                 </div>
             </div>
@@ -265,18 +278,14 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <p style="padding: 20px; color: #666; font-size: 12px;">Warning: Chaos Mode may cause visual instability and floating icons.</p>
                     </div>
                 </div>
             </div>
 
             <div id="camera-app" class="view">
                 <video id="camera-feed" autoplay playsinline></video>
-                <canvas id="camera-canvas" style="display:none;"></canvas>
-                <div id="cam-error" class="cam-error">Camera access denied or not found.</div>
                 <div class="camera-ui">
                     <div class="shutter-btn" onclick="takePhoto()"></div>
-                    <div class="flip-btn" onclick="flipCamera()">🔄</div>
                 </div>
             </div>
         </div>
@@ -287,9 +296,6 @@
         let audioPrimed = false;
         const lockWP = document.getElementById('lock-wp'), homeWP = document.getElementById('home-wp');
         const mainGrid = document.getElementById('main-grid');
-
-        let currentStream = null;
-        let facingMode = "environment"; 
 
         const powerSound = new Audio('mixkit-mouse-click-close-1113.wav');
         const shutterSound = new Audio('mixkit-camera-lens-shutter-1433.wav');
@@ -302,49 +308,33 @@
                 });
                 audioPrimed = true;
             }
-
             powerSound.currentTime = 0; 
             powerSound.play();
-            
             isPowerOn = !isPowerOn;
             document.getElementById('power-overlay').style.opacity = isPowerOn ? '0' : '1';
             document.getElementById('home-bar').style.opacity = isPowerOn ? '1' : '0';
-            
             if (isPowerOn) {
                 document.getElementById('lockscreen').style.display = 'flex';
-                lockWP.style.display = isUnlocked ? 'none' : 'block';
-                homeWP.style.display = isUnlocked ? 'block' : 'none';
                 updateClock();
             } else {
-                setTimeout(() => {
-                    document.getElementById('lockscreen').style.display = 'none';
-                    document.getElementById('homescreen').style.display = 'none';
-                    document.getElementById('homescreen').classList.remove('unlocked');
-                    document.getElementById('settings-app').classList.remove('open');
-                    document.getElementById('camera-app').classList.remove('open');
-                    stopCamera(); 
-                    lockWP.classList.remove('app-active');
-                    homeWP.classList.remove('app-active');
-                    isUnlocked = false;
-                    goToPage(0);
-                }, 600);
+                closeAllApps();
+                isUnlocked = false;
             }
         }
 
         function handleHomeBar() {
-            const settings = document.getElementById('settings-app');
-            const camera = document.getElementById('camera-app');
+            const folderOverlay = document.getElementById('folder-overlay');
+            if (folderOverlay.style.display === 'flex') {
+                toggleFolder(false);
+                return;
+            }
 
-            if (settings.classList.contains('open')) {
-                settings.classList.remove('open');
-                lockWP.classList.remove('app-active');
-                homeWP.classList.remove('app-active');
-            } else if (camera.classList.contains('open')) {
-                camera.classList.remove('open');
-                stopCamera(); 
-                lockWP.classList.remove('app-active');
-                homeWP.classList.remove('app-active');
-            } else if (isPowerOn && !isUnlocked) {
+            if (document.querySelector('.view.open') || document.getElementById('settings-app').classList.contains('open')) {
+                closeAllApps();
+                return;
+            }
+
+            if (isPowerOn && !isUnlocked) {
                 unlockSound.currentTime = 0;
                 unlockSound.play();
                 isUnlocked = true;
@@ -352,11 +342,59 @@
                 document.getElementById('homescreen').style.display = 'flex';
                 lockWP.style.display = 'none';
                 homeWP.style.display = 'block';
-                requestAnimationFrame(() => document.getElementById('homescreen').classList.add('unlocked'));
+                setTimeout(() => document.getElementById('homescreen').classList.add('unlocked'), 10);
             }
         }
 
-        // CHAOS MODE LOGIC
+        function toggleFolder(open) {
+            const overlay = document.getElementById('folder-overlay');
+            const win = document.getElementById('folder-window');
+            if (open) {
+                overlay.style.display = 'flex';
+                setTimeout(() => win.classList.add('open'), 10);
+            } else {
+                win.classList.remove('open');
+                setTimeout(() => overlay.style.display = 'none', 300);
+            }
+        }
+
+        function closeAllApps() {
+            document.querySelectorAll('.view').forEach(v => {
+                if(v.id !== 'lockscreen' && v.id !== 'homescreen') {
+                    v.classList.remove('open');
+                }
+            });
+            lockWP.classList.remove('app-active');
+            homeWP.classList.remove('app-active');
+            if(typeof stopCamera === "function") stopCamera();
+        }
+
+        function openSettings() { 
+            document.getElementById('settings-app').classList.add('open');
+            lockWP.classList.add('app-active'); homeWP.classList.add('app-active');
+        }
+
+        function openCamera() {
+            document.getElementById('camera-app').classList.add('open');
+            lockWP.classList.add('app-active'); homeWP.classList.add('app-active');
+            startCamera();
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('camera-feed');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                window.camStream = stream;
+            } catch (e) {}
+        }
+
+        function stopCamera() {
+            if (window.camStream) {
+                window.camStream.getTracks().forEach(t => t.stop());
+            }
+        }
+
         function toggleChaos(toggle) {
             if (toggle.checked) {
                 mainGrid.classList.add('chaos-active');
@@ -370,71 +408,15 @@
             }
         }
 
-        function openSettings() { 
-            document.getElementById('settings-app').classList.add('open');
-            lockWP.classList.add('app-active');
-            homeWP.classList.add('app-active');
-        }
-
-        function openCamera() {
-            document.getElementById('camera-app').classList.add('open');
-            lockWP.classList.add('app-active');
-            homeWP.classList.add('app-active');
-            startCamera();
-        }
-
-        async function startCamera() {
-            if (currentStream) stopCamera(); 
-            const videoElement = document.getElementById('camera-feed');
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
-                currentStream = stream;
-                videoElement.srcObject = stream;
-            } catch (err) {
-                document.getElementById('cam-error').style.display = 'block';
-            }
-        }
-
-        function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-        }
-
-        function flipCamera() {
-            facingMode = (facingMode === "user") ? "environment" : "user";
-            startCamera();
-        }
-
-        function takePhoto() {
-            shutterSound.currentTime = 0;
-            shutterSound.play();
-            const app = document.getElementById('camera-app');
-            app.style.opacity = '0.5';
-            setTimeout(() => { app.style.opacity = '1'; }, 100);
-        }
-
         function goToPage(num) { document.getElementById('settings-nav').style.transform = `translateX(-${num * 25}%)`; }
 
-        function handleFile(input) {
-            if (input.files && input.files[0]) {
-                const imageUrl = URL.createObjectURL(input.files[0]);
-                document.documentElement.style.setProperty('--lock-bg', `url("${imageUrl}")`);
-                document.documentElement.style.setProperty('--home-bg', `url("${imageUrl}")`);
-                input.value = ""; 
-            }
-        }
-
         function handleDevClick() {
-            if (devActive) return;
             clickCount++;
-            if (clickCount >= 6) {
+            if (clickCount >= 6 && !devActive) {
                 devActive = true;
                 document.getElementById('dev-opt-item').style.display = 'flex';
-                const toast = document.getElementById('toast');
-                toast.style.opacity = '1';
-                setTimeout(() => toast.style.opacity = '0', 2000);
+                document.getElementById('toast').style.opacity = '1';
+                setTimeout(() => document.getElementById('toast').style.opacity = '0', 2000);
             }
         }
 
