@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RandomOS 1.0 Beta</title>
+    <title>PixelOS 2.0 Gold</title>
     <style>
         html, body {
             margin: 0; padding: 0;
@@ -64,6 +64,7 @@
             --lock-bg: url('https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&q=80&w=2070');
             --home-bg: url('https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&q=80&w=2070');
             --app-radius: 16px;
+            --primary-pixel: #1a73e8;
         }
 
         .screen {
@@ -126,9 +127,10 @@
 
         .app-icon-container {
             display: flex; flex-direction: column; align-items: center; cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
         }
         .app-icon-container:active { transform: scale(0.85); }
+        .app-icon-container.dragging { opacity: 0.5; transform: scale(1.1); }
 
         .app-icon {
             width: 58px; height: 58px; border-radius: var(--app-radius);
@@ -138,12 +140,27 @@
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 8px 15px rgba(0,0,0,0.2);
             transition: border-radius 0.5s ease, background 0.5s ease;
+            pointer-events: none; /* Let the container handle dragging */
         }
 
         .app-label {
             font-size: 11px; text-align: center; margin-top: 7px; color: rgba(255,255,255,0.9);
             font-weight: 500;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        /* Notification Shade */
+        #notification-shade {
+            position: absolute; top: -100%; left: 0; width: 100%; height: 80%;
+            background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(30px);
+            z-index: 120; border-radius: 0 0 40px 40px; transition: top 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+            padding: 50px 20px 20px; box-sizing: border-box; color: white;
+        }
+        #notification-shade.open { top: 0; }
+        .shade-handle {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px;
         }
 
         /* Pixel Search Widget */
@@ -189,6 +206,7 @@
             background: rgba(40,40,40,0.95); color: white; padding: 10px 20px;
             border-radius: 30px; font-size: 13px; opacity: 0; transition: all 0.3s; z-index: 110;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
 
         #home-bar {
@@ -234,7 +252,7 @@
             justify-content: center; align-items: center; color: white;
             flex-direction: column;
             border-radius: 48px; 
-            overflow: hidden; /* FIX: Added overflow hidden */
+            overflow: hidden;
         }
         .boot-text { font-size: 24px; font-weight: bold; letter-spacing: 2px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
@@ -243,7 +261,7 @@
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: rgba(0,0,0,0.8); z-index: 150; display: none;
             justify-content: center; align-items: center;
-            border-radius: 48px; /* FIX: Added border radius to stop sharp corners */
+            border-radius: 48px;
             overflow: hidden;
         }
         .modal-box {
@@ -258,7 +276,7 @@
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: #fff; z-index: 180; display: none; color: #1a1c1e;
             padding: 40px 25px; box-sizing: border-box; flex-direction: column;
-            border-radius: 48px; /* FIX: Added border radius to stop sharp corners */
+            border-radius: 48px;
             overflow: hidden;
         }
         .setup-step { display: none; flex-direction: column; height: 100%; }
@@ -281,33 +299,42 @@
 
     <div class="phone-container">
         <div class="power-btn" onclick="togglePower()"></div>
-        <div class="punch-hole"></div>
+        <div class="punch-hole" onclick="toggleNotificationShade()"></div>
         <div id="home-bar" onclick="handleHomeBar()"></div>
         <div id="toast">Developer options activated</div>
 
+        <div id="notification-shade">
+            <h2 data-i18n="notifications">Notifications</h2>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-top: 10px;">
+                <strong data-i18n="system_update">System Update</strong>
+                <p style="font-size: 12px; opacity: 0.7;" data-i18n="up_to_date">Your PixelOS is up to date.</p>
+            </div>
+            <div class="shade-handle"></div>
+        </div>
+
         <div id="setup-wizard" class="view">
             <div id="step-welcome" class="setup-step active">
-                <h1 class="setup-title">Welcome</h1>
-                <p class="setup-desc">Setting up your new PixelOS device.</p>
-                <button class="setup-btn-next" onclick="nextSetup(1)">Start</button>
+                <h1 class="setup-title" data-i18n="welcome">Welcome</h1>
+                <p class="setup-desc" data-i18n="setup_desc">Setting up your new PixelOS device.</p>
+                <button class="setup-btn-next" onclick="nextSetup(1)" data-i18n="start">Start</button>
             </div>
             <div id="step-lang" class="setup-step">
-                <h1 class="setup-title">Language</h1>
-                <p class="setup-desc">Choose your preferred language.</p>
-                <div class="setup-option" onclick="setLang('English')">English</div>
-                <div class="setup-option" onclick="setLang('Georgian')">ქართული (Georgian)</div>
+                <h1 class="setup-title" data-i18n="language">Language</h1>
+                <p class="setup-desc" data-i18n="choose_lang">Choose your preferred language.</p>
+                <div class="setup-option" onclick="setLang('en')">English</div>
+                <div class="setup-option" onclick="setLang('ka')">ქართული (Georgian)</div>
             </div>
             <div id="step-personal" class="setup-step">
-                <h1 class="setup-title">Personalize</h1>
-                <p class="setup-desc">Choose how your phone looks.</p>
-                <button class="btn-custom" style="color:black; background:#f1f3f4" onclick="document.getElementById('setup-wp').click()">Choose Wallpaper</button>
+                <h1 class="setup-title" data-i18n="personalize">Personalize</h1>
+                <p class="setup-desc" data-i18n="look_desc">Choose how your phone looks.</p>
+                <button class="btn-custom" style="color:black; background:#f1f3f4" onclick="document.getElementById('setup-wp').click()" data-i18n="choose_wp">Choose Wallpaper</button>
                 <input type="file" id="setup-wp" hidden accept="image/*" onchange="handleFile(this, 'static')">
-                <button class="setup-btn-next" onclick="nextSetup(3)">Use Default</button>
+                <button class="setup-btn-next" onclick="nextSetup(3)" data-i18n="use_default">Use Default</button>
             </div>
             <div id="step-finish" class="setup-step">
-                <h1 class="setup-title">All set!</h1>
-                <p class="setup-desc">Your device is ready to use.</p>
-                <button class="setup-btn-next" onclick="finishSetup()">Finish</button>
+                <h1 class="setup-title" data-i18n="all_set">All set!</h1>
+                <p class="setup-desc" data-i18n="ready_use">Your device is ready to use.</p>
+                <button class="setup-btn-next" onclick="finishSetup()" data-i18n="finish">Finish</button>
             </div>
         </div>
 
@@ -329,28 +356,28 @@
 
             <div id="lockscreen" class="view">
                 <p id="time">00:00</p>
-                <p id="swipe-hint" style="text-align:center; font-size: 14px; opacity: 0.7; margin-top: -20px;">Swipe up to unlock</p>
+                <p id="swipe-hint" style="text-align:center; font-size: 14px; opacity: 0.7; margin-top: -20px;" data-i18n="swipe_unlock">Swipe up to unlock</p>
             </div>
 
             <div id="homescreen" class="view">
                 <div id="pixel-search">
-                    <span style="font-size: 18px;">G</span>
-                    <span style="margin-left: 10px; color: #888; font-size: 13px;">Search...</span>
+                    <span style="font-size: 18px; color: #4285F4">G</span>
+                    <span style="margin-left: 10px; color: #888; font-size: 13px;" data-i18n="search">Search...</span>
                 </div>
                 <div class="app-grid" id="main-grid">
                     
-                    <div class="app-icon-container" onclick="openApp('settings-app', this)">
+                    <div class="app-icon-container" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onclick="openApp('settings-app', this)">
                         <div class="app-icon" id="settings-icon-div" style="background: linear-gradient(135deg, #8e8e93, #48484a);">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dynamic-icon"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         </div>
-                        <p class="app-label">Settings</p>
+                        <p class="app-label" data-i18n="settings">Settings</p>
                     </div>
 
-                    <div class="app-icon-container" onclick="openApp('camera-app', this)">
+                    <div class="app-icon-container" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onclick="openApp('camera-app', this)">
                         <div class="app-icon" id="camera-icon-div" style="background: linear-gradient(135deg, #5e5e5e, #1c1c1c);">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="dynamic-icon"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                         </div>
-                        <p class="app-label">Camera</p>
+                        <p class="app-label" data-i18n="camera">Camera</p>
                     </div>
                 </div>
             </div>
@@ -358,34 +385,34 @@
             <div id="settings-app" class="view">
                 <div class="settings-content-wrapper" id="settings-nav" style="display: flex; width: 400%; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);">
                     <div style="width: 25%;">
-                        <div class="settings-header">Settings</div>
-                        <div class="settings-item" onclick="goToPage(1)">About Phone <span style="opacity:0.3">></span></div>
-                        <div class="settings-item" onclick="goToPage(2)">Customization <span style="opacity:0.3">></span></div>
-                        <div class="settings-item" id="dev-opt-item" style="display:none" onclick="goToPage(3)">Developer Options <span style="color:#ff3b30">></span></div>
+                        <div class="settings-header" data-i18n="settings">Settings</div>
+                        <div class="settings-item" onclick="goToPage(1)"><span data-i18n="about_phone">About Phone</span> <span style="opacity:0.3">></span></div>
+                        <div class="settings-item" onclick="goToPage(2)"><span data-i18n="customization">Customization</span> <span style="opacity:0.3">></span></div>
+                        <div class="settings-item" id="dev-opt-item" style="display:none" onclick="goToPage(3)"><span data-i18n="developer_options">Developer Options</span> <span style="color:#ff3b30">></span></div>
                     </div>
                     <div style="width: 25%;">
-                        <div class="settings-header"><span onclick="goToPage(0)" style="color:#ff3b30; cursor:pointer; font-size: 18px;">❮ Back</span></div>
+                        <div class="settings-header"><span onclick="goToPage(0)" style="color:#ff3b30; cursor:pointer; font-size: 18px;">❮ <span data-i18n="back">Back</span></span></div>
                         <p id="os-text" onclick="handleDevClick()" style="text-align:center; font-size: 22px; margin-top: 20px; font-weight: 700; cursor: pointer;">RandomOS 1.1</p>
-                        <div class="settings-item"><span style="color:#888">Device</span><span>Samsung S10</span></div>
+                        <div class="settings-item"><span style="color:#888" data-i18n="device">Device</span><span>Samsung S10</span></div>
                     </div>
                     <div style="width: 25%;">
-                        <div class="settings-header"><span onclick="goToPage(0)" style="color:#ff3b30; cursor:pointer; font-size: 18px;">❮ Back</span></div>
+                        <div class="settings-header"><span onclick="goToPage(0)" style="color:#ff3b30; cursor:pointer; font-size: 18px;">❮ <span data-i18n="back">Back</span></span></div>
                         <div style="padding: 25px;">
-                            <button class="btn-custom" onclick="document.getElementById('wp-input').click()">Static Wallpaper</button>
+                            <button class="btn-custom" onclick="document.getElementById('wp-input').click()" data-i18n="static_wp">Static Wallpaper</button>
                             <input type="file" id="wp-input" hidden accept="image/*" onchange="handleFile(this, 'static')">
 
-                            <button class="btn-custom" style="border: 1px solid rgba(255,59,48,0.5);" onclick="document.getElementById('live-wp-input').click()">Live Wallpaper</button>
+                            <button class="btn-custom" style="border: 1px solid rgba(255,59,48,0.5);" onclick="document.getElementById('live-wp-input').click()" data-i18n="live_wp">Live Wallpaper</button>
                             <input type="file" id="live-wp-input" hidden accept="video/mp4, image/gif" onchange="handleFile(this, 'live')">
                         </div>
                     </div>
                     <div style="width: 25%;">
-                        <div class="settings-header"><span onclick="goToPage(0)" style="color:#ff3b30; cursor:pointer; font-size: 18px;">❮ Back</span></div>
+                        <div class="settings-header"><span onclick="goToPage(0)" style="color:#ff3b30; cursor:pointer; font-size: 18px;">❮ <span data-i18n="back">Back</span></span></div>
                         <div id="bootloader-row" class="settings-item" onclick="startUnlockSequence()">
-                            <span>Unlock Bootloader</span>
+                            <span data-i18n="unlock_bootloader">Unlock Bootloader</span>
                             <span style="color:#ff3b30; font-size: 12px;">UNSAFE</span>
                         </div>
                         <div class="settings-item">
-                            <span>Chaos Mode</span>
+                            <span data-i18n="chaos_mode">Chaos Mode</span>
                             <label class="switch">
                                 <input type="checkbox" id="chaos-toggle" onchange="toggleChaos(this)">
                                 <span class="slider"></span>
@@ -410,6 +437,33 @@
         let isPowerOn = false, isUnlocked = false, clickCount = 0, devActive = false, chaosInterval;
         let audioPrimed = false, usingLiveWP = false;
         let isCustomOS = false;
+        let currentLang = 'en';
+
+        // Translations Dictionary
+        const i18n = {
+            en: {
+                welcome: "Welcome", setup_desc: "Setting up your new PixelOS device.", start: "Start",
+                language: "Language", choose_lang: "Choose your preferred language.", lang_toast: "Language set to English",
+                personalize: "Personalize", look_desc: "Choose how your phone looks.", choose_wp: "Choose Wallpaper", use_default: "Use Default",
+                all_set: "All set!", ready_use: "Your device is ready to use.", finish: "Finish",
+                swipe_unlock: "Swipe up to unlock", search: "Search...", settings: "Settings", camera: "Camera",
+                about_phone: "About Phone", customization: "Customization", developer_options: "Developer Options",
+                back: "Back", device: "Device", static_wp: "Static Wallpaper", live_wp: "Live Wallpaper",
+                unlock_bootloader: "Unlock Bootloader", chaos_mode: "Chaos Mode", notifications: "Notifications",
+                system_update: "System Update", up_to_date: "Your PixelOS is up to date."
+            },
+            ka: {
+                welcome: "მოგესალმებით", setup_desc: "თქვენი ახალი PixelOS-ის მომართვა.", start: "დაწყება",
+                language: "ენა", choose_lang: "აირჩიეთ სასურველი ენა.", lang_toast: "ენა შეიცვალა: ქართული",
+                personalize: "პერსონალიზაცია", look_desc: "აირჩიეთ როგორ გამოიყურებოდეს ტელეფონი.", choose_wp: "ფონის არჩევა", use_default: "სტანდარტული",
+                all_set: "ყველაფერი მზადაა!", ready_use: "თქვენი მოწყობილობა მზად არის.", finish: "დასრულება",
+                swipe_unlock: "ასწიეთ განსაბლოკად", search: "ძებნა...", settings: "პარამეტრები", camera: "კამერა",
+                about_phone: "ტელეფონის შესახებ", customization: "ვიზუალი", developer_options: "დეველოპერის პარამეტრები",
+                back: "უკან", device: "მოწყობილობა", static_wp: "სტატიკური ფონი", live_wp: "ცოცხალი ფონი",
+                unlock_bootloader: "Bootloader-ის განბლოკვა", chaos_mode: "ქაოსის რეჟიმი", notifications: "შეტყობინებები",
+                system_update: "სისტემური განახლება", up_to_date: "PixelOS განახლებულია."
+            }
+        };
 
         const lockWP = document.getElementById('lock-wp'), homeWP = document.getElementById('home-wp');
         const liveWP = document.getElementById('live-wp-video');
@@ -417,19 +471,15 @@
 
         let currentStream = null, facingMode = "environment"; 
 
-        // Sounds
-        const powerSound = new Audio('mixkit-mouse-click-close-1113.wav');
-        const shutterSound = new Audio('mixkit-camera-lens-shutter-1433.wav');
-        const unlockSound = new Audio('windows-8-8-1-startup-sound.mp3');
+        // Sound simulation
+        const powerSound = new Audio();
+        const shutterSound = new Audio();
+        const unlockSound = new Audio();
 
         function togglePower() {
             if (!audioPrimed) {
-                [powerSound, shutterSound, unlockSound].forEach(s => {
-                    s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
-                });
                 audioPrimed = true;
             }
-            powerSound.currentTime = 0; powerSound.play();
             isPowerOn = !isPowerOn;
             document.getElementById('power-overlay').style.opacity = isPowerOn ? '0' : '1';
             
@@ -440,6 +490,7 @@
                 updateClock();
             } else {
                 if(usingLiveWP) liveWP.pause();
+                closeNotificationShade();
                 setTimeout(() => {
                     document.getElementById('lockscreen').style.display = 'none';
                     document.getElementById('homescreen').style.display = 'none';
@@ -455,6 +506,67 @@
             }
         }
 
+        // Drag and Drop Logic
+        let draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = e.currentTarget;
+            e.currentTarget.classList.add('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const overItem = e.currentTarget;
+            if (overItem !== draggedItem) {
+                const allIcons = Array.from(mainGrid.children);
+                const draggedIndex = allIcons.indexOf(draggedItem);
+                const overIndex = allIcons.indexOf(overItem);
+
+                if (draggedIndex < overIndex) {
+                    mainGrid.insertBefore(draggedItem, overItem.nextSibling);
+                } else {
+                    mainGrid.insertBefore(draggedItem, overItem);
+                }
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragging');
+            draggedItem.classList.remove('dragging');
+        }
+
+        // Notification Shade Logic
+        function toggleNotificationShade() {
+            if(!isUnlocked) return;
+            document.getElementById('notification-shade').classList.toggle('open');
+        }
+
+        function closeNotificationShade() {
+            document.getElementById('notification-shade').classList.remove('open');
+        }
+
+        // Improved Language Logic
+        function setLang(l) {
+            currentLang = l;
+            applyTranslations();
+            const toast = document.getElementById('toast');
+            toast.innerText = i18n[l].lang_toast;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2000);
+            nextSetup(2);
+        }
+
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerText = i18n[currentLang][key];
+                }
+            });
+        }
+
         // SETUP WIZARD LOGIC
         function nextSetup(stepIndex) {
             const steps = document.querySelectorAll('.setup-step');
@@ -462,18 +574,10 @@
             steps[stepIndex].classList.add('active');
         }
 
-        function setLang(l) {
-            const toast = document.getElementById('toast');
-            toast.innerText = "Language set to " + l;
-            toast.style.opacity = '1';
-            setTimeout(() => toast.style.opacity = '0', 2000);
-            nextSetup(2);
-        }
-
         function finishSetup() {
             document.getElementById('setup-wizard').style.display = 'none';
             applyCustomOSTheme();
-            togglePower(); // Turn on screen to lockscreen
+            if(!isPowerOn) togglePower();
         }
 
         function startUnlockSequence() {
@@ -514,7 +618,6 @@
                 bootAnim.style.display = 'flex';
                 bootAnim.style.background = '#000';
                 
-                // FIX: Swap out generic text for a realistic Google "G" logo and specific font style
                 bootLabel.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; gap: 15px;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="60px" height="60px">
@@ -526,7 +629,7 @@
                         <span style="font-family: 'Segoe UI', Roboto, sans-serif; font-weight: normal; font-size: 24px; color: white;">PixelOS</span>
                     </div>
                 `;
-                bootSubtext.style.display = 'none'; // Hide the RandomOS subtext cleanly
+                bootSubtext.style.display = 'none';
                 wipeData();
 
                 setTimeout(() => {
@@ -543,7 +646,7 @@
             usingLiveWP = false; liveWP.src = "";
             document.documentElement.style.setProperty('--lock-bg', "none");
             document.documentElement.style.setProperty('--home-bg', "none");
-            document.documentElement.style.setProperty('--app-radius', "50%"); // Apply 50% for Pixel
+            document.documentElement.style.setProperty('--app-radius', "50%"); 
             
             clearInterval(chaosInterval);
             document.body.style.filter = 'invert(0)';
@@ -560,7 +663,6 @@
                 icon.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
             });
 
-            // FIX: Make sure the SVG strokes switch to dark mode so they are visible on a white background
             const dynamicIcons = document.querySelectorAll('.dynamic-icon');
             dynamicIcons.forEach(icon => {
                 icon.setAttribute("stroke", "#1a1c1e"); 
@@ -579,12 +681,14 @@
             document.getElementById('swipe-hint').style.color = "white";
             document.getElementById('pixel-search').style.display = 'flex';
 
-            // Default Pixel Wallpaper if user didn't pick one
             if(!document.documentElement.style.getPropertyValue('--home-bg') || document.documentElement.style.getPropertyValue('--home-bg') === "none") {
                 const pixelWP = "url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop')";
                 document.documentElement.style.setProperty('--home-bg', pixelWP);
                 document.documentElement.style.setProperty('--lock-bg', pixelWP);
+                lockWP.style.backgroundImage = pixelWP;
+                homeWP.style.backgroundImage = pixelWP;
             }
+            applyTranslations();
         }
 
         function updateWallpaperVisibility() {
@@ -600,18 +704,81 @@
         function handleHomeBar() {
             const settings = document.getElementById('settings-app');
             const camera = document.getElementById('camera-app');
+            closeNotificationShade();
+
             if (settings.classList.contains('open') || camera.classList.contains('open')) {
                 settings.classList.remove('open'); camera.classList.remove('open');
                 stopCamera(); 
                 lockWP.classList.remove('app-active'); homeWP.classList.remove('app-active');
             } else if (isPowerOn && !isUnlocked) {
-                unlockSound.currentTime = 0; unlockSound.play();
                 isUnlocked = true;
                 document.getElementById('lockscreen').style.display = 'none';
                 document.getElementById('homescreen').style.display = 'flex';
                 updateWallpaperVisibility();
                 setTimeout(() => document.getElementById('homescreen').classList.add('unlocked'), 50);
             }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('time').innerText = timeStr;
+            if(isPowerOn) setTimeout(updateClock, 10000);
+        }
+
+        function openApp(appId, iconElement) {
+            const app = document.getElementById(appId);
+            app.classList.add('open');
+            lockWP.classList.add('app-active');
+            homeWP.classList.add('app-active');
+            if (appId === 'camera-app') startCamera();
+        }
+
+        function goToPage(p) {
+            document.getElementById('settings-nav').style.transform = `translateX(-${p * 25}%)`;
+        }
+
+        function handleDevClick() {
+            clickCount++;
+            if (clickCount >= 5 && !devActive) {
+                devActive = true;
+                document.getElementById('dev-opt-item').style.display = 'flex';
+                const toast = document.getElementById('toast');
+                toast.style.opacity = '1';
+                setTimeout(() => toast.style.opacity = '0', 2000);
+            }
+        }
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
+                .then(stream => {
+                    currentStream = stream;
+                    document.getElementById('camera-feed').srcObject = stream;
+                }).catch(() => alert("Camera access denied"));
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        function handleFile(input, type) {
+            const file = input.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            if (type === 'static') {
+                document.documentElement.style.setProperty('--home-bg', `url(${url})`);
+                document.documentElement.style.setProperty('--lock-bg', `url(${url})`);
+                homeWP.style.backgroundImage = `url(${url})`;
+                lockWP.style.backgroundImage = `url(${url})`;
+                usingLiveWP = false;
+            } else {
+                liveWP.src = url;
+                usingLiveWP = true;
+            }
+            updateWallpaperVisibility();
         }
 
         function toggleChaos(toggle) {
@@ -627,78 +794,8 @@
             }
         }
 
-        function openApp(appId, iconElement) {
-            const app = document.getElementById(appId);
-            const rect = iconElement.getBoundingClientRect();
-            const containerRect = document.querySelector('.screen').getBoundingClientRect();
-            const x = (rect.left + rect.width / 2) - containerRect.left;
-            const y = (rect.top + rect.height / 2) - containerRect.top;
-            app.style.transformOrigin = `${x}px ${y}px`;
-            app.style.display = 'flex';
-            setTimeout(() => { app.classList.add('open'); }, 10);
-            lockWP.classList.add('app-active'); homeWP.classList.add('app-active');
-            if(appId === 'camera-app') startCamera();
-        }
-
-        async function startCamera() {
-            if (currentStream) stopCamera(); 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
-                currentStream = stream;
-                document.getElementById('camera-feed').srcObject = stream;
-            } catch (err) { console.log("Cam error"); }
-        }
-
-        function stopCamera() {
-            if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); currentStream = null; }
-        }
-
-        function flipCamera() { facingMode = (facingMode === "user") ? "environment" : "user"; startCamera(); }
-
-        function takePhoto() {
-            shutterSound.currentTime = 0; shutterSound.play();
-            const app = document.getElementById('camera-app');
-            app.style.opacity = '0.4'; setTimeout(() => app.style.opacity = '1', 100);
-        }
-
-        function goToPage(num) { document.getElementById('settings-nav').style.transform = `translateX(-${num * 25}%)`; }
-
-        function handleFile(input, type) {
-            if (input.files && input.files[0]) {
-                const fileUrl = URL.createObjectURL(input.files[0]);
-                if (type === 'static') {
-                    usingLiveWP = false;
-                    document.documentElement.style.setProperty('--lock-bg', `url("${fileUrl}")`);
-                    document.documentElement.style.setProperty('--home-bg', `url("${fileUrl}")`);
-                } else {
-                    usingLiveWP = true; liveWP.src = fileUrl; liveWP.play();
-                }
-                updateWallpaperVisibility();
-                if(document.getElementById('setup-wizard').style.display === 'flex') nextSetup(3);
-            }
-        }
-
-        function handleDevClick() {
-            if (devActive) return;
-            clickCount++;
-            const toast = document.getElementById('toast');
-            if (clickCount > 2 && clickCount < 6) {
-                toast.innerText = `You are now ${6 - clickCount} steps away from being a developer.`;
-                toast.style.opacity = '1'; setTimeout(() => toast.style.opacity = '0', 1000);
-            }
-            if (clickCount >= 6) {
-                devActive = true;
-                document.getElementById('dev-opt-item').style.display = 'flex';
-                toast.innerText = "You are now a developer!";
-                toast.style.opacity = '1'; setTimeout(() => toast.style.opacity = '0', 2000);
-            }
-        }
-
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('time').textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        }
-        setInterval(updateClock, 1000);
+        // Initialize clock
+        updateClock();
     </script>
 </body>
 </html>
