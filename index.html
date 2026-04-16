@@ -69,6 +69,7 @@
             background: #000;
         }
 
+        /* Lockscreen */
         #lockscreen {
             position: absolute;
             inset: 0;
@@ -87,7 +88,8 @@
             pointer-events: none;
         }
 
-        .home-grid {
+        /* Home Grid */
+        #home-bg {
             width: 100%;
             height: 100%;
             background: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070') center/cover;
@@ -95,6 +97,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
+            transition: background 0.5s ease;
         }
 
         .app-icon {
@@ -114,19 +117,18 @@
             object-fit: cover;
         }
 
+        /* App Windows */
         .app-window {
             position: absolute;
             inset: 0;
-            background: #fff;
+            background: #f2f2f7;
             z-index: 400;
             border-radius: 32px;
             opacity: 0;
             pointer-events: none;
             transform: scale(0);
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
         }
 
         .app-window.open {
@@ -135,14 +137,25 @@
             pointer-events: auto;
         }
 
-        /* App Specific Origins */
-        #settings { transform-origin: 16% 15%; }
-        #tiktok { transform-origin: 38% 15%; background: #000; color: white; }
+        #settings { transform-origin: 16% 15%; padding: 60px 20px; color: #000; }
+        #tiktok { transform-origin: 38% 15%; background: #000; color: white; display: flex; justify-content: center; align-items: center; }
 
-        .none-text {
-            font-size: 40px;
-            font-weight: 800;
-            letter-spacing: -1px;
+        /* Settings UI */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .setting-item {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
 
         .status-bar {
@@ -176,7 +189,6 @@
             justify-content: center;
             align-items: center;
             z-index: 700;
-            cursor: ns-resize;
         }
     </style>
 </head>
@@ -187,7 +199,7 @@
         <div class="phone" id="device">
             <div class="punch-hole"></div>
             <div class="screen-content">
-                <div class="status-bar">
+                <div class="status-bar" id="status-bar">
                     <span id="clock">09:41</span>
                     <span style="margin-right: 25px;">5G 🔋</span> 
                 </div>
@@ -200,7 +212,7 @@
                     <div class="home-bar" id="lock-bar"></div>
                 </div>
 
-                <div class="home-grid">
+                <div class="home-grid" id="home-bg">
                     <div class="app-icon" onpointerdown="openApp('settings')">
                         <img src="https://img.icons8.com/?size=100&id=a8NHl6SmDbn7&format=png&color=000000" alt="Settings">
                     </div>
@@ -209,9 +221,22 @@
                     </div>
                 </div>
 
-                <div id="settings" class="app-window"></div>
+                <div id="settings" class="app-window">
+                    <h2 style="margin-bottom: 20px;">Settings</h2>
+                    <div class="settings-list">
+                        <div class="setting-item" onclick="changeWallpaper()">
+                            <span>Wallpaper</span>
+                            <span style="color: #007aff;">Change ›</span>
+                        </div>
+                        <div class="setting-item" onclick="toggleDarkMode()">
+                            <span>Dark Mode</span>
+                            <span id="dark-status">OFF</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="tiktok" class="app-window">
-                    <div class="none-text">none</div>
+                    <div style="font-size: 40px; font-weight: 800;">none</div>
                 </div>
 
                 <div class="app-home-trigger" id="home-trigger">
@@ -225,11 +250,38 @@
         let isPowerOn = true;
         let startY = 0;
         let activeAction = null; 
+        let wallIndex = 0;
+        const walls = [
+            'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070',
+            'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070',
+            'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2070'
+        ];
 
         const lockscreen = document.getElementById('lockscreen');
         const lockBar = document.getElementById('lock-bar');
         const homeTrigger = document.getElementById('home-trigger');
 
+        // Settings Logic
+        function changeWallpaper() {
+            wallIndex = (wallIndex + 1) % walls.length;
+            document.getElementById('home-bg').style.backgroundImage = `url('${walls[wallIndex]}')`;
+        }
+
+        function toggleDarkMode() {
+            const status = document.getElementById('dark-status');
+            const settings = document.getElementById('settings');
+            if (status.innerText === "OFF") {
+                settings.style.background = "#1c1c1e";
+                settings.style.color = "#fff";
+                status.innerText = "ON";
+            } else {
+                settings.style.background = "#f2f2f7";
+                settings.style.color = "#000";
+                status.innerText = "OFF";
+            }
+        }
+
+        // Swipe Logic
         const handleStart = (e, action) => {
             startY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
             activeAction = action;
@@ -238,13 +290,9 @@
         const handleEnd = (e) => {
             if (!startY) return;
             const endY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : startY);
-            
             if (startY - endY > 50) { 
-                if (activeAction === 'unlock') {
-                    unlock();
-                } else if (activeAction === 'home') {
-                    goHome();
-                }
+                if (activeAction === 'unlock') unlock();
+                else if (activeAction === 'home') goHome();
             }
             startY = 0;
             activeAction = null;
@@ -259,33 +307,15 @@
         window.addEventListener('touchend', handleEnd);
 
         function unlock() { lockscreen.classList.add('unlocked'); }
-        
         function goHome() { 
-            const apps = document.querySelectorAll('.app-window');
-            apps.forEach(app => {
-                app.classList.remove('open');
-                // Force a pointer event reset to prevent double-tap bug
-                app.style.pointerEvents = 'none'; 
-            });
+            document.querySelectorAll('.app-window').forEach(w => w.classList.remove('open')); 
         }
-
-        function openApp(id) { 
-            const app = document.getElementById(id);
-            app.classList.add('open');
-            app.style.pointerEvents = 'auto';
-        }
+        function openApp(id) { document.getElementById(id).classList.add('open'); }
 
         function togglePower() {
             const device = document.getElementById('device');
-            if (isPowerOn) {
-                device.style.opacity = "0";
-                isPowerOn = false;
-            } else {
-                device.style.opacity = "1";
-                lockscreen.classList.remove('unlocked');
-                goHome();
-                isPowerOn = true;
-            }
+            if (isPowerOn) { device.style.opacity = "0"; isPowerOn = false; }
+            else { device.style.opacity = "1"; lockscreen.classList.remove('unlocked'); goHome(); isPowerOn = true; }
         }
 
         function updateTime() {
