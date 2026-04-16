@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RandomOS 1.0 Beta</title>
     <style>
-        /* 1. NATIVE RESET */
+        /* 1. RESET & NATIVE FEEL */
         * {
             -webkit-tap-highlight-color: transparent;
             user-select: none;
@@ -14,7 +14,7 @@
         }
 
         body {
-            background-color: #000; /* Pure black background */
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,58 +24,68 @@
             font-family: -apple-system, system-ui, sans-serif;
         }
 
-        /* 2. THE HARDWARE */
+        /* 2. THE HARDWARE (S10 Style) */
         .phone-wrapper {
             position: relative;
-            padding-right: 10px;
+            padding-right: 12px;
         }
 
         .phone {
             width: 320px;
-            height: 650px;
-            background: #000;
-            border-radius: 45px;
-            border: 6px solid #1a1a1a; 
+            height: 660px;
+            background: #111; /* Dark screen background when off */
+            border-radius: 40px;
+            border: 8px solid #333; /* Permanent Frame */
             position: relative;
             overflow: hidden;
-            transition: all 0.4s ease; /* Transition for the frame hiding */
+            box-shadow: 0 0 30px rgba(255,255,255,0.05);
+            transition: background 0.3s ease;
         }
 
-        /* INVISIBLE FRAME LOGIC */
-        .phone.power-off {
-            border-color: #000; /* Matches body */
-            background: #000;   /* Matches body */
-        }
-
-        .phone.power-off .screen-content {
-            opacity: 0;
-            pointer-events: none;
+        /* S10 Punch Hole Camera (Top Right) */
+        .punch-hole {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            width: 14px;
+            height: 14px;
+            background: #000;
+            border-radius: 50%;
+            z-index: 1000;
+            box-shadow: inset 0 0 3px #111;
         }
 
         .power-btn {
             position: absolute;
             right: 0;
-            top: 140px;
+            top: 120px;
             width: 4px;
-            height: 50px;
-            background: #222; /* Slightly visible button */
+            height: 45px;
+            background: #444;
             border-radius: 0 4px 4px 0;
             cursor: pointer;
-            z-index: 1000;
+            z-index: 1001;
         }
 
-        /* 3. SCREEN CONTENT */
+        /* 3. SCREEN CONTENT & STATES */
         .screen-content {
             width: 100%;
             height: 100%;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s ease;
             position: relative;
+            background: #000;
+        }
+
+        /* The fix for the frame: content disappears, frame stays */
+        .power-off .screen-content {
+            opacity: 0;
+            pointer-events: none;
         }
 
         #lockscreen {
             position: absolute;
             inset: 0;
-            background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070') center/cover;
+            background: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2070') center/cover;
             z-index: 500;
             display: flex;
             flex-direction: column;
@@ -85,50 +95,47 @@
         }
 
         #lockscreen.unlocked {
-            transform: scale(1.5);
+            transform: scale(1.4);
             opacity: 0;
             pointer-events: none;
         }
 
-        /* 4. HOME SCREEN */
+        /* 4. HOME SCREEN & APPS */
         .home-grid {
             width: 100%;
             height: 100%;
-            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964') center/cover;
-            padding: 60px 25px;
+            background: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070') center/cover;
+            padding: 70px 25px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
         }
 
         .app-icon {
-            width: 55px;
-            height: 55px;
+            width: 54px;
+            height: 54px;
             border-radius: 14px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 24px;
             cursor: pointer;
         }
 
-        /* 5. TOP-LEFT ZOOM ANIMATION */
+        /* 5. ZOOM ANIMATION (Top-Left Origin) */
         .app-window {
             position: absolute;
             inset: 0;
             background: #fff;
             z-index: 400;
-            border-radius: 40px;
+            border-radius: 32px; /* Inner screen radius */
             opacity: 0;
             pointer-events: none;
-            
-            /* Zoom origin from top-left icon position */
             transform-origin: 20% 15%; 
             transform: scale(0);
-            
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s;
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s;
         }
 
         .app-window.open {
@@ -156,9 +163,9 @@
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 110px;
+            width: 100px;
             height: 4px;
-            background: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.3);
             border-radius: 10px;
             z-index: 700;
             cursor: pointer;
@@ -171,15 +178,16 @@
         <div class="power-btn" onclick="togglePower()"></div>
 
         <div class="phone" id="device">
+            <div class="punch-hole"></div>
+
             <div class="screen-content">
                 <div class="status-bar">
-                    <span id="clock">05:14</span>
-                    <span>5G 🔋</span>
-                </div>
+                    <span id="clock">09:41</span>
+                    <span style="margin-right: 25px;">5G 🔋</span> </div>
 
                 <div id="lockscreen" onclick="unlock()">
                     <div style="text-align: center; color: white;">
-                        <h1 style="font-size: 55px; font-weight: 200; margin:0;" id="lock-clock">05:14</h1>
+                        <h1 style="font-size: 50px; font-weight: 200; margin:0;" id="lock-clock">09:41</h1>
                         <p style="opacity: 0.8; margin:0;">Thursday, Apr 16</p>
                     </div>
                 </div>
@@ -203,11 +211,9 @@
             const lock = document.getElementById('lockscreen');
             
             if (isPowerOn) {
-                // OFF STATE: Everything goes black except power btn
                 device.classList.add('power-off');
                 isPowerOn = false;
             } else {
-                // ON STATE: Re-show frame and reset to lockscreen
                 device.classList.remove('power-off');
                 lock.classList.remove('unlocked'); 
                 goHome(); 
@@ -227,7 +233,6 @@
             document.querySelectorAll('.app-window').forEach(w => w.classList.remove('open'));
         }
 
-        // Clock Update
         function updateTime() {
             const now = new Date();
             const time = now.getHours().toString().padStart(2, '0') + ":" + 
