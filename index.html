@@ -14,7 +14,7 @@
         }
 
         body {
-            background-color: #000; /* Deep black to hide frame when off */
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -35,18 +35,16 @@
             height: 650px;
             background: #000;
             border-radius: 45px;
-            /* Frame border that disappears */
-            border: 8px solid #1a1a1a; 
+            /* Thin dark border for "On" state */
+            border: 6px solid #1a1a1a; 
             position: relative;
             overflow: hidden;
-            transition: border-color 0.5s ease, box-shadow 0.5s ease;
-            box-shadow: 0 0 40px rgba(0,0,0,1);
+            transition: border-color 0.4s ease;
         }
 
-        /* Invisible state when Power is OFF */
+        /* FULL HIDE: Border becomes pure black like the body */
         .phone.power-off {
-            border-color: #000; /* Merges frame with background */
-            box-shadow: none;
+            border-color: #000;
         }
 
         .phone.power-off .screen-content {
@@ -70,7 +68,7 @@
         .screen-content {
             width: 100%;
             height: 100%;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease;
             position: relative;
         }
 
@@ -87,7 +85,7 @@
         }
 
         #lockscreen.unlocked {
-            transform: scale(1.2);
+            transform: scale(1.5);
             opacity: 0;
             pointer-events: none;
         }
@@ -97,58 +95,61 @@
             width: 100%;
             height: 100%;
             background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964') center/cover;
-            padding: 50px 20px;
+            padding: 60px 25px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
         }
 
         .app-icon {
-            width: 58px;
-            height: 58px;
-            border-radius: 16px;
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(15px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 26px;
             cursor: pointer;
-            transition: transform 0.1s;
         }
 
-        .app-icon:active { transform: scale(0.9); }
-
-        /* 5. THE ZOOM ANIMATION */
+        /* 5. TOP-LEFT ZOOM ANIMATION */
         .app-window {
             position: absolute;
             inset: 0;
             background: #fff;
             z-index: 400;
-            border-radius: 40px; /* Strong border radius */
+            border-radius: 40px;
             opacity: 0;
             pointer-events: none;
-            /* This mimics a zoom from the "bottom-left" where settings usually sits */
-            transform: scale(0.1) translateY(200px); 
-            transform-origin: center bottom;
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s;
+            
+            /* Zoom starts from top-left (where the icon is) */
+            transform-origin: 15% 15%; 
+            transform: scale(0);
+            
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), 
+                        opacity 0.2s, 
+                        border-radius 0.5s;
         }
 
         .app-window.open {
             opacity: 1;
-            transform: scale(1) translateY(0);
+            transform: scale(1);
             pointer-events: auto;
+            border-radius: 39px; /* Matches phone curve when open */
         }
 
         /* 6. UI ELEMENTS */
         .status-bar {
             position: absolute;
-            top: 12px;
+            top: 15px;
             width: 100%;
-            padding: 0 25px;
+            padding: 0 30px;
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 600;
             color: white;
             z-index: 600;
         }
@@ -180,8 +181,8 @@
 
                 <div id="lockscreen" onclick="unlock()">
                     <div style="text-align: center; color: white;">
-                        <h1 style="font-size: 50px; font-weight: 200;" id="lock-clock">05:14</h1>
-                        <p style="opacity: 0.8;">Thursday, Apr 16</p>
+                        <h1 style="font-size: 55px; font-weight: 200; margin:0;" id="lock-clock">05:14</h1>
+                        <p style="opacity: 0.8; margin:0;">Thursday, Apr 16</p>
                     </div>
                 </div>
 
@@ -208,7 +209,7 @@
                 isPowerOn = false;
             } else {
                 device.classList.remove('power-off');
-                lock.classList.remove('unlocked'); // Always boot to lockscreen
+                lock.classList.remove('unlocked'); 
                 goHome(); 
                 isPowerOn = true;
             }
@@ -229,8 +230,9 @@
         // Live Clock logic
         function updateTime() {
             const now = new Date();
-            const time = now.getHours().toString().padStart(2, '0') + ":" + 
-                         now.getMinutes().toString().padStart(2, '0');
+            const h = now.getHours().toString().padStart(2, '0');
+            const m = now.getMinutes().toString().padStart(2, '0');
+            const time = h + ":" + m;
             document.getElementById('clock').innerText = time;
             document.getElementById('lock-clock').innerText = time;
         }
