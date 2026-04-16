@@ -69,7 +69,6 @@
             background: #000;
         }
 
-        /* Lockscreen */
         #lockscreen {
             position: absolute;
             inset: 0;
@@ -88,7 +87,6 @@
             pointer-events: none;
         }
 
-        /* Home Grid */
         .home-grid {
             width: 100%;
             height: 100%;
@@ -108,7 +106,6 @@
             justify-content: center;
             cursor: pointer;
             overflow: hidden;
-            z-index: 10;
         }
 
         .app-icon img {
@@ -117,7 +114,6 @@
             object-fit: cover;
         }
 
-        /* Zoom Animation - Top Left Origin */
         .app-window {
             position: absolute;
             inset: 0;
@@ -125,18 +121,20 @@
             z-index: 400;
             border-radius: 32px;
             opacity: 0;
-            visibility: hidden; /* Fix for the double-click bug */
+            visibility: hidden; /* Fixes the double-click bug */
             pointer-events: none;
-            transform-origin: top left; 
-            transform: scale(0);
+            transform-origin: top left; /* Brings back top-left zoom */
+            transform: scale(0); /* Zooms from 0 */
+            /* NORMAL RESPONSE: Slower animation for natural feel */
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, visibility 0.4s;
         }
 
         .app-window.open {
             opacity: 1;
-            visibility: visible;
+            visibility: visible; /* Fixes the double-click bug */
             transform: scale(1);
             pointer-events: auto;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, visibility 0s;
         }
 
         .status-bar {
@@ -149,7 +147,7 @@
             font-size: 11px;
             font-weight: 600;
             color: white;
-            z-index: 900;
+            z-index: 600;
         }
 
         .home-bar {
@@ -159,18 +157,17 @@
             border-radius: 10px;
         }
 
-        /* Swipe Trigger */
         .app-home-trigger {
             position: absolute;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
-            height: 60px; 
+            height: 50px; /* Slightly larger hit area for easier swiping */
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 700;
             cursor: ns-resize;
         }
     </style>
@@ -196,15 +193,15 @@
                 </div>
 
                 <div class="home-grid">
-                    <div class="app-icon" id="settings-icon">
+                    <div class="app-icon" onclick="openApp('settings')">
                         <img src="https://img.icons8.com/?size=100&id=a8NHl6SmDbn7&format=png&color=000000" alt="Settings">
                     </div>
                 </div>
 
-                <div id="settings-app" class="app-window"></div>
+                <div id="settings" class="app-window"></div>
 
                 <div class="app-home-trigger" id="home-trigger">
-                    <div class="home-bar" style="background: rgba(255,255,255,0.4);"></div>
+                    <div class="home-bar" style="background: rgba(255,255,255,0.3);"></div>
                 </div>
             </div>
         </div>
@@ -213,55 +210,54 @@
     <script>
         let isPowerOn = true;
         let startY = 0;
-        let isDragging = false;
+        let activeAction = null; // Track if we are unlocking or closing app
 
         const lockscreen = document.getElementById('lockscreen');
         const lockBar = document.getElementById('lock-bar');
         const homeTrigger = document.getElementById('home-trigger');
-        const settingsIcon = document.getElementById('settings-icon');
 
-        // FIX: Simple click for app icon
-        settingsIcon.addEventListener('click', () => {
-            openApp('settings-app');
-        });
-
-        // SWIPE LOGIC
-        const handleStart = (e) => {
+        // IMPROVED SWIPE LOGIC FOR PC
+        const handleStart = (e, action) => {
             startY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-            isDragging = true;
+            activeAction = action;
+        };
+
+        const handleMove = (e) => {
+            if (!startY) return;
+            // Optional: add visual follow here later
         };
 
         const handleEnd = (e) => {
-            if (!isDragging) return;
+            if (!startY) return;
             const endY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : startY);
             
-            if (startY - endY > 50) {
-                // If lockscreen is visible, unlock it. Otherwise, go home.
-                if (!lockscreen.classList.contains('unlocked')) {
+            if (startY - endY > 50) { // Swipe Up detected
+                if (activeAction === 'unlock') {
                     unlock();
-                } else {
+                } else if (activeAction === 'home') {
                     goHome();
                 }
             }
-            isDragging = false;
+            startY = 0;
+            activeAction = null;
         };
 
-        // Attach listeners
-        lockBar.addEventListener('mousedown', handleStart);
-        lockBar.addEventListener('touchstart', handleStart);
-        homeTrigger.addEventListener('mousedown', handleStart);
-        homeTrigger.addEventListener('touchstart', handleStart);
+        // Listeners for Lockscreen
+        lockBar.addEventListener('mousedown', (e) => handleStart(e, 'unlock'));
+        lockBar.addEventListener('touchstart', (e) => handleStart(e, 'unlock'));
 
+        // Listeners for Home Bar
+        homeTrigger.addEventListener('mousedown', (e) => handleStart(e, 'home'));
+        homeTrigger.addEventListener('touchstart', (e) => handleStart(e, 'home'));
+
+        // Global listeners to catch the end of the swipe even if mouse moves off the bar
         window.addEventListener('mouseup', handleEnd);
         window.addEventListener('touchend', handleEnd);
+        window.addEventListener('mousemove', handleMove);
 
         function unlock() { lockscreen.classList.add('unlocked'); }
-        function goHome() { 
-            document.querySelectorAll('.app-window').forEach(w => w.classList.remove('open')); 
-        }
-        function openApp(id) { 
-            document.getElementById(id).classList.add('open'); 
-        }
+        function goHome() { document.querySelectorAll('.app-window').forEach(w => w.classList.remove('open')); }
+        function openApp(id) { document.getElementById(id).classList.add('open'); }
 
         function togglePower() {
             const device = document.getElementById('device');
