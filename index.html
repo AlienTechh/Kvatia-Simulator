@@ -70,11 +70,11 @@
             transform: translateY(0);
         }
 
+        /* Transition is now handled by JS setFPS to allow laggy stepping */
         .app-window {
             position: absolute; inset: 0; background: #fff; z-index: 400;
             opacity: 0; pointer-events: none;
             transform: scale(0);
-            transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s;
             overflow: hidden;
         }
 
@@ -165,7 +165,7 @@
                                 <span>Screen</span>
                                 <span style="color: #ccc;">›</span>
                             </div>
-                            </div>
+                        </div>
                     </div>
 
                     <div id="screen-settings" class="sub-page">
@@ -176,7 +176,7 @@
                         <div class="settings-list">
                             <div class="settings-item" onclick="setFPS(20)">60Hz (Real 20 FPS)</div>
                             <div class="settings-item" onclick="setFPS(60)">120Hz (Real 60 FPS)</div>
-                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -205,22 +205,19 @@
         let isUnlocked = false;
         let startY = 0;
         let isDragging = false;
-        
-        // Initial state: Web normal refresh rate set to 60Hz (20 FPS)
         let targetFPS = 20; 
+        let lastFrameTime = 0;
 
         const screen = document.getElementById('screen');
         const lockscreen = document.getElementById('lockscreen');
         const gestureArea = document.getElementById('gesture-area');
 
-        // Throttle requestAnimationFrame to simulate real hardware refresh limits
+        // FORCE LAG: Using steps() in CSS and a tight timing loop in JS
         const originalRAF = window.requestAnimationFrame;
-        let lastFrameTime = 0;
-
         window.requestAnimationFrame = function(callback) {
             const now = performance.now();
-            const delta = now - lastFrameTime;
             const interval = 1000 / targetFPS;
+            const delta = now - lastFrameTime;
 
             if (delta >= interval) {
                 lastFrameTime = now - (delta % interval);
@@ -232,6 +229,18 @@
 
         function setFPS(fps) {
             targetFPS = fps;
+            const appWindows = document.querySelectorAll('.app-window');
+            
+            if (fps === 20) {
+                // Apply a stepping function to CSS transitions to prevent smooth interpolation
+                const lagStyle = "transform 0.6s steps(12), opacity 0.6s steps(12)";
+                appWindows.forEach(w => w.style.transition = lagStyle);
+                lockscreen.style.transition = "transform 0.5s steps(10)";
+            } else {
+                const smoothStyle = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s";
+                appWindows.forEach(w => w.style.transition = smoothStyle);
+                lockscreen.style.transition = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
+            }
             console.log(`Hardware Refresh Rate switched to: ${fps} FPS`);
         }
 
@@ -248,7 +257,11 @@
         const handleMove = (e) => {
             if (!isDragging) return;
             const currentY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-            const deltaY = currentY - startY;
+            const rawDelta = currentY - startY;
+            
+            // Add jitter/stepping to touch movement if in lag mode
+            const deltaY = (targetFPS === 20) ? Math.floor(rawDelta / 10) * 10 : rawDelta;
+
             if (!isUnlocked && deltaY < 0) {
                 lockscreen.style.transform = `translateY(${deltaY}px)`;
             }
@@ -261,7 +274,6 @@
             const totalTravel = startY - endY;
 
             if (!isUnlocked) {
-                lockscreen.style.transition = 'transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)';
                 if (totalTravel > 100) { 
                     lockscreen.style.transform = 'translateY(-100%)';
                     isUnlocked = true;
@@ -315,6 +327,9 @@
         }
         setInterval(updateTime, 1000);
         updateTime();
+        
+        // Initialize the laggy feel immediately
+        setFPS(20);
     </script>
 </body>
 </html>
