@@ -55,7 +55,6 @@
             background: #333; border-radius: 0 4px 4px 0; cursor: pointer; z-index: 1001;
         }
 
-        /* Fixed the left margin to remove the thin bezel gap */
         .screen-content {
             flex: 1; 
             width: 100%; 
@@ -65,7 +64,6 @@
             border-radius: 36px;
             margin: 0; 
             overflow: hidden;
-            /* Edge Curve Simulation */
             box-shadow: inset 12px 0 15px -10px rgba(0,0,0,0.7), 
                         inset -12px 0 15px -10px rgba(0,0,0,0.7);
         }
@@ -80,8 +78,26 @@
             transform: translateY(0);
         }
 
+        /* APP DRAWER SYSTEM */
+        #app-drawer {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 700;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            padding: 50px 25px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: min-content;
+            gap: 20px;
+        }
+        #app-drawer.visible { transform: translateY(0); }
+
         .app-window {
-            position: absolute; inset: 0; background: #fff; z-index: 400;
+            position: absolute; inset: 0; background: #fff; z-index: 950;
             opacity: 0; pointer-events: none;
             transform: scale(0);
             border-radius: 36px;
@@ -90,20 +106,17 @@
 
         .app-window.open { opacity: 1; transform: scale(1); pointer-events: auto; }
 
-        /* TikTok UI per Drawing */
+        /* TikTok UI */
         #tiktok { background: #000; color: white; }
         .tiktok-image { width: 100%; height: 100%; object-fit: cover; display: block; }
-        
         .tt-overlay { position: absolute; inset: 0; pointer-events: none; padding: 25px; display: flex; flex-direction: column; justify-content: flex-end; }
-        
         .tt-right-bottom { position: absolute; right: 20px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 20px; pointer-events: auto; }
         .tt-icon-btn { font-size: 30px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.9)); cursor: pointer; }
-        
         .tt-info { margin-bottom: 50px; pointer-events: auto; text-shadow: 1px 1px 4px rgba(0,0,0,1); }
         .tt-username { font-weight: bold; font-size: 16px; margin-bottom: 5px; }
         .tt-caption { font-size: 14px; width: 75%; line-height: 1.4; }
 
-        /* Settings UI Renamed */
+        /* Settings UI */
         #settings { background: #f2f2f7; color: #000; }
         .settings-header { padding: 50px 20px 10px; font-size: 28px; font-weight: bold; }
         .settings-list { background: #fff; border-top: 1px solid #ddd; margin-top: 20px; }
@@ -112,21 +125,20 @@
         .sub-page { position: absolute; inset: 0; background: #f2f2f7; z-index: 10; display: none; }
         .sub-page.active { display: block; }
 
-        .home-grid {
+        .home-screen {
             width: 100%; height: 100%;
             background: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070') center/cover;
-            padding: 30px 25px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+            position: relative;
         }
 
-        .app-icon { width: 54px; height: 54px; border-radius: 14px; cursor: pointer; }
-        /* Block context menu on images and prevent dragging/selection */
-        .app-icon img { pointer-events: none; -webkit-user-drag: none; }
+        .app-icon { width: 54px; height: 54px; border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .app-icon img { width: 100%; height: 100%; border-radius: 12px; pointer-events: none; -webkit-user-drag: none; }
 
-        .status-bar { position: absolute; top: 10px; width: 100%; padding: 0 25px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: white; z-index: 600; }
-        .gesture-trigger { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; z-index: 900; }
+        .status-bar { position: absolute; top: 10px; width: 100%; padding: 0 25px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: white; z-index: 1000; }
+        .gesture-trigger { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; z-index: 1000; }
         .home-bar { width: 80px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 10px; }
 
-        /* Browser App Styles */
+        /* Browser Styles */
         #browser { background: #fff; color: #000; display: flex; flex-direction: column; }
         .browser-body { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff; padding: 20px; text-align: center; }
         .browser-nav { background: #f9f9f9; border-top: 1px solid #ddd; padding: 10px 15px 30px; display: flex; align-items: center; gap: 10px; }
@@ -153,15 +165,17 @@
                     </div>
                 </div>
 
-                <div class="home-grid">
-                    <div class="app-icon" onpointerdown="openApp('settings', this)">
-                        <img src="https://img.icons8.com/?size=100&id=a8NHl6SmDbn7&format=png" width="100%">
-                    </div>
-                    <div class="app-icon" onpointerdown="openApp('tiktok', this)">
-                        <img src="https://img.icons8.com/?size=100&id=118638&format=png" width="100%">
-                    </div>
-                    <div class="app-icon" onpointerdown="openApp('browser', this)">
-                        <img src="https://cdn-icons-png.flaticon.com/128/1040/1040243.png" width="100%">
+                <div class="home-screen" id="homescreen-wallpaper">
+                    <div id="app-drawer">
+                        <div class="app-icon" onpointerdown="openApp('settings', this)">
+                            <img src="https://img.icons8.com/?size=100&id=a8NHl6SmDbn7&format=png">
+                        </div>
+                        <div class="app-icon" onpointerdown="openApp('tiktok', this)">
+                            <img src="https://img.icons8.com/?size=100&id=118638&format=png">
+                        </div>
+                        <div class="app-icon" onpointerdown="openApp('browser', this)">
+                            <img src="https://cdn-icons-png.flaticon.com/128/1040/1040243.png">
+                        </div>
                     </div>
                 </div>
 
@@ -182,12 +196,8 @@
 
                 <div id="tiktok" class="app-window">
                     <img class="tiktok-image" src="https://photo-cdn2.icons8.com/u6Kq-Mztr6T6ndoFGgWU8u9KCkCVpR5PrUAwGE4VhoQ/rs:fit:1606:1072/wm:1:re:0:0:0.65/wmid:moose/q:98/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNjA1L2Q2MmFi/YTFmLWVhNzEtNDlk/ZC04MDRhLTU2OTVh/MzA4M2IyYi5qcGc.jpg">
-                    
                     <div class="tt-overlay">
-                        <div class="tt-info">
-                            <div class="tt-username">@CleanOS_Project</div>
-                            <div class="tt-caption">CleanOS Comming Soon? #fyp #cleanos #viral</div>
-                        </div>
+                        <div class="tt-info"><div class="tt-username">@CleanOS_Project</div><div class="tt-caption">CleanOS Coming Soon? #fyp #cleanos</div></div>
                         <div class="tt-right-bottom">
                             <div class="tt-icon-btn">❤️</div>
                             <div class="tt-icon-btn">💬</div>
@@ -198,15 +208,10 @@
 
                 <div id="browser" class="app-window">
                     <div class="browser-body">
-                        <div>
-                            <h2 style="margin:0; font-weight:300;">CleanSurf</h2>
-                            <p style="font-size:12px; opacity:0.5;">Secure & Fast</p>
-                        </div>
+                        <div><h2 style="margin:0; font-weight:300;">CleanSurf</h2><p style="font-size:12px; opacity:0.5;">Secure & Fast</p></div>
                     </div>
                     <div class="browser-nav">
-                        <span style="font-size:18px;">🏠</span>
-                        <div class="url-bar">https://github.com/alientechh/CleanOS</div>
-                        <span style="font-size:18px;">🔄</span>
+                        <span>🏠</span><div class="url-bar">https://github.com/alientechh/CleanOS</div><span>🔄</span>
                     </div>
                 </div>
 
@@ -220,9 +225,16 @@
     </div>
 
     <script>
-        let isPowerOn = true, isUnlocked = false, startY = 0, isDragging = false, targetFPS = 20, lastFrameTime = 0;
-        const screen = document.getElementById('screen'), lockscreen = document.getElementById('lockscreen'), gestureArea = document.getElementById('gesture-area');
+        let isPowerOn = true, isUnlocked = false, isDrawerOpen = false;
+        let startY = 0, isDragging = false, targetFPS = 20, lastFrameTime = 0;
+        
+        const screen = document.getElementById('screen');
+        const lockscreen = document.getElementById('lockscreen');
+        const drawer = document.getElementById('app-drawer');
+        const gestureArea = document.getElementById('gesture-area');
+        const homescreen = document.getElementById('homescreen-wallpaper');
 
+        // FPS SYSTEM
         const originalRAF = window.requestAnimationFrame;
         window.requestAnimationFrame = function(callback) {
             const now = performance.now(), interval = 1000 / targetFPS, delta = now - lastFrameTime;
@@ -237,13 +249,10 @@
         function setFPS(fps) {
             targetFPS = fps;
             const appWindows = document.querySelectorAll('.app-window');
-            if (fps === 20) {
-                appWindows.forEach(w => w.style.transition = "transform 0.6s steps(12), opacity 0.6s steps(12)");
-                lockscreen.style.transition = "transform 0.5s steps(10)";
-            } else {
-                appWindows.forEach(w => w.style.transition = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s");
-                lockscreen.style.transition = "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
-            }
+            const transition = fps === 20 ? "transform 0.6s steps(12), opacity 0.6s steps(12)" : "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s";
+            appWindows.forEach(w => w.style.transition = transition);
+            drawer.style.transition = fps === 20 ? "transform 0.6s steps(12)" : "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
+            lockscreen.style.transition = fps === 20 ? "transform 0.5s steps(10)" : "transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)";
         }
 
         function openApp(id, iconElement) { 
@@ -255,30 +264,48 @@
         function goHome() { 
             document.querySelectorAll('.app-window').forEach(w => w.classList.remove('open'));
             document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+            drawer.classList.remove('visible');
+            isDrawerOpen = false;
         }
 
-        gestureArea.addEventListener('pointerdown', e => {
+        // UNIFIED SLIDE LOGIC (Drawer & Lockscreen)
+        const handleStart = (e) => {
             if (!isPowerOn) return;
-            isDragging = true; startY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-            if (!isUnlocked) lockscreen.style.transition = 'none';
-        });
+            isDragging = true;
+            startY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+        };
 
-        window.addEventListener('pointermove', e => {
-            if (!isDragging) return;
-            const currentY = e.clientY || (e.touches ? e.touches[0].clientY : 0), rawDelta = currentY - startY;
-            const deltaY = (targetFPS === 20) ? Math.floor(rawDelta / 10) * 10 : rawDelta;
-            if (!isUnlocked && deltaY < 0) lockscreen.style.transform = `translateY(${deltaY}px)`;
-        });
-
-        window.addEventListener('pointerup', e => {
+        const handleEnd = (e) => {
             if (!isDragging) return;
             isDragging = false;
             const endY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : startY);
+            const diff = startY - endY;
+
             if (!isUnlocked) {
-                if (startY - endY > 100) { lockscreen.style.transform = 'translateY(-100%)'; isUnlocked = true; }
+                if (diff > 100) { lockscreen.style.transform = 'translateY(-100%)'; isUnlocked = true; }
                 else { lockscreen.style.transform = 'translateY(0)'; }
-            } else if (startY - endY > 50) goHome();
-        });
+            } else {
+                // Check if any app is open
+                const anyAppOpen = document.querySelector('.app-window.open');
+                if (anyAppOpen) {
+                    if (diff > 50) goHome();
+                } else {
+                    // Drawer Logic on Homescreen
+                    if (diff > 50 && !isDrawerOpen) { // Slide Up
+                        drawer.classList.add('visible');
+                        isDrawerOpen = true;
+                    } else if (diff < -50 && isDrawerOpen) { // Slide Down
+                        drawer.classList.remove('visible');
+                        isDrawerOpen = false;
+                    }
+                }
+            }
+        };
+
+        // Attach listeners to wallpaper and navigation area
+        homescreen.addEventListener('pointerdown', handleStart);
+        window.addEventListener('pointerup', handleEnd);
+        gestureArea.addEventListener('pointerdown', handleStart);
 
         function showSubPage(id) { document.getElementById(id).classList.add('active'); }
         function hideSubPage(id) { document.getElementById(id).classList.remove('active'); }
@@ -293,7 +320,10 @@
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             document.getElementById('clock').innerText = time; document.getElementById('lock-clock').innerText = time;
         }
-        setInterval(updateTime, 1000); updateTime(); setFPS(20);
+        
+        setInterval(updateTime, 1000); 
+        updateTime(); 
+        setFPS(20);
     </script>
 </body>
 </html>
