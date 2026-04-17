@@ -88,8 +88,13 @@
         }
         #control-center.open { transform: translateY(0); }
         .cc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
-        .cc-tile { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 20px; font-size: 12px; text-align: center; }
+        .cc-tile { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 20px; font-size: 12px; text-align: center; cursor: pointer; transition: background 0.2s, color 0.2s; }
         .cc-tile.active { background: #007aff; }
+        
+        /* LOW POWER MODE SPECIFIC STYLES */
+        .cc-tile.lpm-active { background: #ffcc00; color: #000; font-weight: bold; }
+        body.low-power #control-center { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(15, 15, 15, 0.98); }
+        body.low-power #app-drawer { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(0, 0, 0, 0.98); }
 
         #lockscreen {
             position: absolute; inset: 0;
@@ -152,11 +157,7 @@
             opacity: 0;
         }
         
-        /* State when phone is unlocked */
-        .home-screen.unlocked {
-            transform: scale(1);
-            opacity: 1;
-        }
+        .home-screen.unlocked { transform: scale(1); opacity: 1; }
 
         .app-icon { 
             width: 54px; height: 54px; border-radius: 14px; cursor: pointer; 
@@ -166,7 +167,6 @@
             opacity: 0;
         }
         
-        /* Staggered entry for icons */
         .unlocked .app-icon { transform: translateY(0); opacity: 1; }
         .unlocked .app-icon:nth-child(1) { transition-delay: 0.1s; }
         .unlocked .app-icon:nth-child(2) { transition-delay: 0.15s; }
@@ -184,7 +184,7 @@
         .gesture-trigger { position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 12px; z-index: 1150; }
         .home-bar { width: 80px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 10px; pointer-events: auto; }
 
-        /* BROWSER - "NONE" VIEW */
+        /* BROWSER */
         #browser { background: #fff; color: #000; }
         .browser-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
         .browser-none-text { font-size: 48px; font-weight: 900; letter-spacing: -2px; color: #000; }
@@ -210,6 +210,7 @@
                         <div class="cc-tile active">Bluetooth</div>
                         <div class="cc-tile">Airplane</div>
                         <div class="cc-tile" style="background: orange;">Flashlight</div>
+                        <div class="cc-tile" id="lpm-btn" onclick="toggleLowPower()" style="grid-column: span 2;">Low Power Mode: Off</div>
                     </div>
                 </div>
 
@@ -253,8 +254,8 @@
                         <div style="padding-top: 40px;"><div class="back-btn" onclick="hideSubPage('screen-settings')">‹ Settings</div></div>
                         <div class="settings-header" style="font-size: 22px;">Choose refresh rate</div>
                         <div class="settings-list">
-                            <div class="settings-item" onclick="setFPS(20)">60Hz (Real 20 FPS)</div>
-                            <div class="settings-item" onclick="setFPS(60)">120Hz (Real 60 FPS)</div>
+                            <div class="settings-item" onclick="setFPSFromSettings(20)">60Hz (Real 20 FPS)</div>
+                            <div class="settings-item" onclick="setFPSFromSettings(60)">120Hz (Real 60 FPS)</div>
                         </div>
                     </div>
                 </div>
@@ -281,6 +282,10 @@
         let startY = 0, isDragging = false, targetFPS = 20, lastFrameTime = 0;
         let swipeStartedOnStatusBar = false;
         
+        // LOW POWER MODE VARIABLES
+        let isLowPower = false;
+        let savedFPS = 20;
+        
         const screen = document.getElementById('screen');
         const lockscreen = document.getElementById('lockscreen');
         const drawer = document.getElementById('app-drawer');
@@ -289,6 +294,7 @@
         const gestureArea = document.getElementById('gesture-area');
         const homescreen = document.getElementById('homescreen-ui');
         const topBezel = document.getElementById('top-bezel');
+        const lpmBtn = document.getElementById('lpm-btn');
 
         const originalRAF = window.requestAnimationFrame;
         window.requestAnimationFrame = function(callback) {
@@ -303,13 +309,41 @@
 
         function setFPS(fps) {
             targetFPS = fps;
-            const stepSetting = fps === 20 ? "steps(10)" : "cubic-bezier(0.19, 1, 0.22, 1)";
+            let stepSetting = "cubic-bezier(0.19, 1, 0.22, 1)";
+            if (fps === 20) stepSetting = "steps(10)";
+            if (fps === 10) stepSetting = "steps(5)"; // Extra choppy for LPM
+
             const appWindows = document.querySelectorAll('.app-window');
             appWindows.forEach(w => w.style.transition = `transform 0.4s ${stepSetting}, opacity 0.25s`);
             drawer.style.transition = `transform 0.4s ${stepSetting}`;
             cc.style.transition = `transform 0.4s ${stepSetting}`;
             lockscreen.style.transition = `transform 0.4s ${stepSetting}`;
             homescreen.style.transition = `transform 0.5s ${stepSetting}, opacity 0.5s`;
+        }
+
+        // New wrapper function to disable LPM if user manually changes FPS in settings
+        function setFPSFromSettings(fps) {
+            if (isLowPower) {
+                toggleLowPower(); // Turns it off first
+            }
+            savedFPS = fps;
+            setFPS(fps);
+        }
+
+        function toggleLowPower() {
+            isLowPower = !isLowPower;
+            if (isLowPower) {
+                savedFPS = targetFPS; // Remember where we were
+                setFPS(10); // Drop to 10 FPS
+                document.body.classList.add('low-power'); // Kills blurs
+                lpmBtn.classList.add('lpm-active');
+                lpmBtn.innerText = "Low Power Mode: On";
+            } else {
+                setFPS(savedFPS); // Restore previous FPS
+                document.body.classList.remove('low-power'); // Restores blurs
+                lpmBtn.classList.remove('lpm-active');
+                lpmBtn.innerText = "Low Power Mode: Off";
+            }
         }
 
         function openApp(id, iconElement) { 
@@ -342,7 +376,6 @@
 
             if (!isUnlocked && diff > 0) {
                 lockscreen.style.transform = `translateY(${-diff}px)`;
-                // Subtle homescreen reveal parallax
                 let progress = Math.min(diff / 400, 1);
                 homescreen.style.opacity = progress;
                 homescreen.style.transform = `scale(${0.85 + (progress * 0.15)})`;
@@ -355,7 +388,10 @@
             const endY = e.clientY || (e.changedTouches ? e.changedTouches[0].clientY : startY);
             const diff = startY - endY;
 
-            const stepSetting = targetFPS === 20 ? "steps(10)" : "cubic-bezier(0.19, 1, 0.22, 1)";
+            let stepSetting = "cubic-bezier(0.19, 1, 0.22, 1)";
+            if (targetFPS === 20) stepSetting = "steps(10)";
+            if (targetFPS === 10) stepSetting = "steps(5)";
+
             lockscreen.style.transition = `transform 0.4s ${stepSetting}`;
             homescreen.style.transition = `transform 0.5s ${stepSetting}, opacity 0.5s`;
 
