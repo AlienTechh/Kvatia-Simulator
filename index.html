@@ -70,12 +70,10 @@
             transform: translateY(0);
         }
 
-        /* App Windows with Dynamic Zoom Animation */
         .app-window {
             position: absolute; inset: 0; background: #fff; z-index: 400;
             opacity: 0; pointer-events: none;
             transform: scale(0);
-            /* Smooth cubic-bezier for a high-end feel */
             transition: transform 0.45s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.25s;
             overflow: hidden;
         }
@@ -86,14 +84,23 @@
             pointer-events: auto; 
         }
         
-        #settings { background: #f2f2f7; padding: 40px 20px; }
-        #tiktok { background: #000; }
-
-        .tiktok-feed { width: 100%; height: 100%; position: relative; }
-        .tiktok-image { 
-            width: 100%; height: 100%; object-fit: cover; display: block; 
-            pointer-events: none; /* Prevents interaction with the image itself */
+        /* Settings UI Styling */
+        #settings { background: #f2f2f7; padding: 0; color: #000; }
+        .settings-header { padding: 50px 20px 10px; font-size: 28px; font-weight: bold; background: #f2f2f7; }
+        .settings-list { background: #fff; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; margin-top: 20px; }
+        .settings-item { 
+            padding: 12px 20px; border-bottom: 1px solid #eee; cursor: pointer; 
+            display: flex; justify-content: space-between; align-items: center;
         }
+        .settings-item:last-child { border-bottom: none; }
+        .back-btn { color: #007aff; cursor: pointer; padding: 10px 20px; font-size: 17px; display: inline-block; }
+
+        .sub-page { position: absolute; inset: 0; background: #f2f2f7; z-index: 10; display: none; }
+        .sub-page.active { display: block; }
+
+        #tiktok { background: #000; }
+        .tiktok-feed { width: 100%; height: 100%; position: relative; }
+        .tiktok-image { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 
         .sidebar {
             position: absolute; right: 10px; bottom: 100px;
@@ -144,21 +151,44 @@
 
                 <div class="home-grid">
                     <div class="app-icon" onpointerdown="openApp('settings', this)">
-                        <img src="https://img.icons8.com/?size=100&id=a8NHl6SmDbn7&format=png&color=000000" width="100%" oncontextmenu="return false;">
+                        <img src="https://img.icons8.com/?size=100&id=a8NHl6SmDbn7&format=png&color=000000" width="100%">
                     </div>
                     <div class="app-icon" onpointerdown="openApp('tiktok', this)">
-                        <img src="https://img.icons8.com/?size=100&id=118638&format=png&color=000000" width="100%" oncontextmenu="return false;">
+                        <img src="https://img.icons8.com/?size=100&id=118638&format=png&color=000000" width="100%">
                     </div>
                 </div>
 
                 <div id="settings" class="app-window">
-                    <h2 style="margin: 20px;">Settings</h2>
-                    <p style="margin: 20px;">CleanOS v1.0 Beta</p>
+                    <div id="settings-main">
+                        <div class="settings-header">Settings</div>
+                        <div class="settings-list">
+                            <div class="settings-item" onclick="showSubPage('screen-settings')">
+                                <span>Screen</span>
+                                <span style="color: #ccc;">›</span>
+                            </div>
+                            <div class="settings-item">
+                                <span>General</span>
+                                <span style="color: #ccc;">›</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="screen-settings" class="sub-page">
+                        <div style="padding-top: 40px;">
+                            <div class="back-btn" onclick="hideSubPage('screen-settings')">‹ Settings</div>
+                        </div>
+                        <div class="settings-header" style="font-size: 22px;">Choose refresh rate</div>
+                        <div class="settings-list">
+                            <div class="settings-item" onclick="setFPS(20)">60Hz (20 FPS)</div>
+                            <div class="settings-item" onclick="setFPS(60)">120Hz (60 FPS)</div>
+                            <div class="settings-item" onclick="setFPS(0)">Original</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="tiktok" class="app-window">
                     <div class="tiktok-feed">
-                        <img class="tiktok-image" src="https://photo-cdn2.icons8.com/u6Kq-Mztr6T6ndoFGgWU8u9KCkCVpR5PrUAwGE4VhoQ/rs:fit:1606:1072/wm:1:re:0:0:0.65/wmid:moose/q:98/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNjA1L2Q2MmFi/YTFmLWVhNzEtNDlk/ZC04MDRhLTU2OTVh/MzA4M2IyYi5qcGc.jpg" oncontextmenu="return false;">
+                        <img class="tiktok-image" src="https://photo-cdn2.icons8.com/u6Kq-Mztr6T6ndoFGgWU8u9KCkCVpR5PrUAwGE4VhoQ/rs:fit:1606:1072/wm:1:re:0:0:0.65/wmid:moose/q:98/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNjA1L2Q2MmFi/YTFmLWVhNzEtNDlk/ZC04MDRhLTU2OTVh/MzA4M2IyYi5qcGc.jpg">
                         <div class="sidebar">
                             <div class="action-btn heart-icon" onclick="toggleLike(this)">❤</div>
                             <div class="action-btn comment-icon">🗨</div>
@@ -181,13 +211,38 @@
         let isUnlocked = false;
         let startY = 0;
         let isDragging = false;
+        let targetFPS = 0; // 0 means browser default
 
         const screen = document.getElementById('screen');
         const lockscreen = document.getElementById('lockscreen');
         const gestureArea = document.getElementById('gesture-area');
 
-        function toggleLike(el) { el.classList.toggle('active'); }
-        function toggleFav(el) { el.classList.toggle('active'); }
+        // Refresh Rate Logic: Throttling requestAnimationFrame
+        const originalRAF = window.requestAnimationFrame;
+        let lastFrameTime = 0;
+
+        window.requestAnimationFrame = function(callback) {
+            if (targetFPS === 0) return originalRAF(callback);
+            
+            const now = performance.now();
+            const delta = now - lastFrameTime;
+            const interval = 1000 / targetFPS;
+
+            if (delta > interval) {
+                lastFrameTime = now - (delta % interval);
+                return originalRAF(callback);
+            } else {
+                return originalRAF(() => window.requestAnimationFrame(callback));
+            }
+        };
+
+        function setFPS(fps) {
+            targetFPS = fps;
+            alert(`Refresh rate set to ${fps === 0 ? 'Original' : fps + ' FPS'}`);
+        }
+
+        function showSubPage(id) { document.getElementById(id).classList.add('active'); }
+        function hideSubPage(id) { document.getElementById(id).classList.remove('active'); }
 
         const handleStart = (e) => {
             if (!isPowerOn) return;
@@ -228,13 +283,10 @@
         window.addEventListener('pointermove', handleMove);
         window.addEventListener('pointerup', handleEnd);
 
-        // Calculate icon position so app grows from that spot
         function openApp(id, iconElement) { 
             const app = document.getElementById(id);
             const iconRect = iconElement.getBoundingClientRect();
             const screenRect = screen.getBoundingClientRect();
-
-            // Find center of icon relative to the screen
             const originX = (iconRect.left + iconRect.width / 2) - screenRect.left;
             const originY = (iconRect.top + iconRect.height / 2) - screenRect.top;
 
@@ -246,6 +298,8 @@
             document.querySelectorAll('.app-window').forEach(w => {
                 w.classList.remove('open');
             });
+            // Reset settings pages on exit
+            document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
         }
 
         function togglePower() {
@@ -253,7 +307,6 @@
             if (isPowerOn) {
                 screen.classList.remove('screen-off');
                 isUnlocked = false;
-                lockscreen.style.transition = 'none';
                 lockscreen.style.transform = 'translateY(0)';
                 goHome();
             } else {
