@@ -138,7 +138,7 @@
             <div class="screen-content" id="screen">
                 <div class="status-bar">
                     <span id="clock">09:41</span>
-                    <span>5G 🔋</span> 
+                    <span>100% 🔋</span> 
                 </div>
 
                 <div id="lockscreen">
@@ -205,7 +205,7 @@
         let isUnlocked = false;
         let startY = 0;
         let isDragging = false;
-        let targetFPS = 20; 
+        let targetFPS = 12; 
         let lastFrameTime = 0;
 
         const screen = document.getElementById('screen');
@@ -329,7 +329,7 @@
         updateTime();
         
         // Initialize the laggy feel immediately
-        setFPS(20);
+        setFPS(12);
     </script>
 </body>
 </html>
