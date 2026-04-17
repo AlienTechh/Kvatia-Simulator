@@ -122,6 +122,13 @@
         .status-bar { position: absolute; top: 10px; width: 100%; padding: 0 25px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: white; z-index: 600; }
         .gesture-trigger { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; z-index: 900; }
         .home-bar { width: 80px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 10px; }
+
+        /* --- BROWSER ADDITION START --- */
+        #browser { background: #fff; color: #000; display: flex; flex-direction: column; }
+        .browser-body { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff; padding: 20px; text-align: center; }
+        .browser-nav { background: #f9f9f9; border-top: 1px solid #ddd; padding: 10px 15px 30px; display: flex; align-items: center; gap: 10px; }
+        .url-bar { flex: 1; background: #eee; padding: 8px 15px; border-radius: 20px; font-size: 13px; color: #555; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        /* --- BROWSER ADDITION END --- */
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -151,7 +158,10 @@
                     <div class="app-icon" onpointerdown="openApp('tiktok', this)">
                         <img src="https://img.icons8.com/?size=100&id=118638&format=png" width="100%">
                     </div>
-                </div>
+                    <div class="app-icon" onpointerdown="openApp('browser', this)">
+                        <img src="https://img.icons8.com/?size=100&id=63658&format=png" width="100%">
+                    </div>
+                    </div>
 
                 <div id="settings" class="app-window">
                     <div class="settings-header">Settings</div>
@@ -184,6 +194,19 @@
                     </div>
                 </div>
 
+                <div id="browser" class="app-window">
+                    <div class="browser-body">
+                        <div>
+                            <h2 style="margin:0; font-weight:300;">CleanSurf</h2>
+                            <p style="font-size:12px; opacity:0.5;">Secure & Fast</p>
+                        </div>
+                    </div>
+                    <div class="browser-nav">
+                        <span style="font-size:18px;">🏠</span>
+                        <div class="url-bar">https://github.com/alientechh/CleanOS</div>
+                        <span style="font-size:18px;">🔄</span>
+                    </div>
+                </div>
                 <div class="gesture-trigger" id="gesture-area">
                     <div class="home-bar"></div>
                 </div>
