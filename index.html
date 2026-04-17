@@ -35,7 +35,7 @@
             border-radius: 48px; 
             border: 2px solid #222; 
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Crucial for clipping corners */
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
             display: flex;
             flex-direction: column;
@@ -60,9 +60,10 @@
             position: relative; 
             background: #000;
             transition: opacity 0.25s ease-in-out;
-            border-radius: 36px;
             margin: 0; 
             overflow: hidden;
+            /* Match the inner curve of the S8 chassis */
+            border-radius: 38px;
             box-shadow: inset 12px 0 15px -10px rgba(0,0,0,0.7), 
                         inset -12px 0 15px -10px rgba(0,0,0,0.7);
         }
@@ -75,12 +76,12 @@
             z-index: 800; display: flex; flex-direction: column;
             align-items: center; justify-content: space-between; padding: 40px 20px 20px;
             transform: translateY(0);
+            border-radius: 38px;
         }
 
-        /* APP DRAWER - Updated with better border radius and padding */
         #app-drawer {
             position: absolute;
-            inset: 8px; /* Slightly inset for better look */
+            inset: 5px; 
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
@@ -92,7 +93,7 @@
             grid-template-columns: repeat(4, 1fr);
             grid-auto-rows: min-content;
             gap: 20px;
-            border-radius: 32px; /* Smooth Border Radius */
+            border-radius: 34px; 
             border: 1px solid rgba(255,255,255,0.1);
         }
         #app-drawer.visible { transform: translateY(0); }
@@ -101,13 +102,13 @@
             position: absolute; inset: 0; background: #fff; z-index: 950;
             opacity: 0; pointer-events: none;
             transform: scale(0);
-            border-radius: 36px;
+            border-radius: 38px;
             overflow: hidden;
         }
 
         .app-window.open { opacity: 1; transform: scale(1); pointer-events: auto; }
 
-        /* App Styles */
+        /* Apps */
         #tiktok { background: #000; color: white; }
         .tiktok-image { width: 100%; height: 100%; object-fit: cover; display: block; }
         .tt-overlay { position: absolute; inset: 0; pointer-events: none; padding: 25px; display: flex; flex-direction: column; justify-content: flex-end; }
@@ -129,17 +130,18 @@
             width: 100%; height: 100%;
             background: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070') center/cover;
             position: relative;
-            padding: 30px 25px;
+            padding: 40px 25px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
+            border-radius: 38px;
         }
 
         .app-icon { width: 54px; height: 54px; border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .app-icon img { width: 100%; height: 100%; border-radius: 12px; pointer-events: none; -webkit-user-drag: none; }
 
         .status-bar { position: absolute; top: 10px; width: 100%; padding: 0 25px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: white; z-index: 1000; }
-        .gesture-trigger { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 15px; z-index: 1000; }
+        .gesture-trigger { position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 12px; z-index: 1000; }
         .home-bar { width: 80px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 10px; pointer-events: auto; }
 
         #browser { background: #fff; color: #000; display: flex; flex-direction: column; }
@@ -291,7 +293,6 @@
             if (!isDragging) return;
             const currentY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
             const rawDelta = currentY - startY;
-            
             if (!isUnlocked && rawDelta < 0) {
                 const deltaY = (targetFPS === 20) ? Math.floor(rawDelta / 10) * 10 : rawDelta;
                 lockscreen.style.transform = `translateY(${deltaY}px)`;
@@ -343,9 +344,7 @@
             document.getElementById('clock').innerText = time; document.getElementById('lock-clock').innerText = time;
         }
         
-        setInterval(updateTime, 1000); 
-        updateTime(); 
-        setFPS(20);
+        setInterval(updateTime, 1000); updateTime(); setFPS(20);
     </script>
 </body>
 </html>
