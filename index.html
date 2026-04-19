@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperOS Pro Mockup</title>
+    <title>HyperOS Pro - Final Refinement</title>
     <style>
         :root {
             --phone-width: 310px;
             --phone-height: 640px;
+            --phone-radius: 54px; /* Outer frame */
+            --inner-radius: 44px; /* Inner screen/app radius */
             --icon-radius: 14px;
-            --fluid-bezier: cubic-bezier(0.32, 0.72, 0, 1);
-            --glass: rgba(255, 255, 255, 0.15);
+            --fluid-bezier: cubic-bezier(0.3, 0.8, 0.1, 1);
         }
 
         html, body {
@@ -18,55 +19,52 @@
             overflow: hidden; overscroll-behavior: none;
             -webkit-tap-highlight-color: transparent;
             user-select: none; -webkit-user-select: none;
-            background: #050505; display: flex;
+            background: #0d0d0d; display: flex;
             justify-content: center; align-items: center;
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
-        /* Power Button */
+        /* Power Button - Always Visible */
         .power-btn {
             position: absolute; right: -15px; top: 130px;
-            width: 5px; height: 55px; background: #222;
+            width: 5px; height: 55px; background: #333;
             border-radius: 0 4px 4px 0; cursor: pointer; z-index: 200;
         }
 
-        /* Phone Frame */
-        #phone-container {
+        /* Phone Frame - Always Visible */
+        #phone-shell {
             width: var(--phone-width); height: var(--phone-height);
-            background: #000; border: 12px solid #1a1a1a;
-            border-radius: 54px; position: relative; overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
-            transition: opacity 0.4s ease; touch-action: none;
-            isolation: isolate;
+            background: #111; border: 10px solid #222;
+            border-radius: var(--phone-radius); position: relative;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.8);
+            overflow: hidden; isolation: isolate;
         }
 
-        .screen-off { opacity: 0; pointer-events: none; }
+        /* The actual "Display" content that turns off */
+        #display-content {
+            width: 100%; height: 100%;
+            position: relative;
+            transition: opacity 0.3s ease;
+        }
 
-        /* Punch Hole & Status Bar */
+        .screen-off { opacity: 0 !important; pointer-events: none; }
+
         .punch-hole {
             position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
             width: 14px; height: 14px; background: #000;
             border-radius: 50%; z-index: 100;
         }
 
-        .status-bar {
-            position: absolute; top: 12px; width: 100%;
-            padding: 0 25px; display: flex; justify-content: space-between;
-            color: white; font-size: 11px; font-weight: 500; z-index: 90;
-            box-sizing: border-box;
-        }
-
-        /* Layers */
         .layer {
             position: absolute; width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            transition: transform 0.65s var(--fluid-bezier);
+            transition: transform 0.6s var(--fluid-bezier);
         }
 
         #lockscreen {
             background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600');
             z-index: 50; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; color: white; text-align: center;
+            justify-content: center; color: white;
         }
 
         #homescreen {
@@ -74,11 +72,8 @@
             z-index: 40; padding: 60px 20px; box-sizing: border-box;
         }
 
-        /* App Grid & Dock */
-        .app-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
-        }
-
+        /* App Layout */
+        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .dock {
             position: absolute; bottom: 15px; left: 15px; right: 15px;
             height: 70px; background: rgba(255,255,255,0.1);
@@ -86,39 +81,37 @@
             display: flex; justify-content: space-evenly; align-items: center;
         }
 
+        .app-wrapper { display: flex; flex-direction: column; align-items: center; }
         .app-icon {
-            width: 54px; height: 54px; background: var(--glass);
-            backdrop-filter: blur(10px); border-radius: var(--icon-radius);
+            width: 54px; height: 54px; border-radius: var(--icon-radius);
             display: flex; align-items: center; justify-content: center;
             font-size: 24px; cursor: pointer; transition: transform 0.1s;
-            border: 1px solid rgba(255,255,255,0.1);
         }
         .app-icon:active { transform: scale(0.85); }
-        .app-label { color: white; font-size: 10px; margin-top: 5px; text-align: center; }
+        .app-label { color: white; font-size: 10px; margin-top: 5px; }
 
-        /* App Window */
+        /* App Window - Sync Radius with Phone Frame */
         #app-window {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 60; transform: scale(0); opacity: 0;
-            border-radius: 80px; pointer-events: none;
-            transition: transform 0.5s var(--fluid-bezier), opacity 0.2s, border-radius 0.5s var(--fluid-bezier);
-            overflow: hidden; background: #f4f4f4;
+            border-radius: 100px; /* Start round */
+            pointer-events: none;
+            transition: 
+                transform 0.5s var(--fluid-bezier), 
+                opacity 0.2s, 
+                border-radius 0.5s var(--fluid-bezier);
+            overflow: hidden; background: #fff;
         }
 
-        #app-window.open { transform: scale(1); opacity: 1; border-radius: 0px; pointer-events: auto; }
-
-        /* Settings View Content */
-        .settings-content {
-            padding: 50px 20px; color: #000; width: 100%;
+        #app-window.open { 
+            transform: scale(1); 
+            opacity: 1; 
+            border-radius: var(--inner-radius); /* Matches phone corner */
+            pointer-events: auto; 
         }
-        .settings-item {
-            display: flex; align-items: center; padding: 15px 0;
-            border-bottom: 1px solid #ddd; font-size: 14px;
-        }
-        .settings-icon { width: 30px; margin-right: 15px; font-size: 18px; }
 
-        /* Swipe UI */
-        .nav-handle-container {
+        /* Swipe Bar */
+        .nav-trigger {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 50px;
             z-index: 150; display: flex; justify-content: center; align-items: flex-end;
             padding-bottom: 8px; cursor: grab;
@@ -132,61 +125,47 @@
 
     <div style="position: relative;">
         <div class="power-btn" id="pwr-btn"></div>
-        <div id="phone-container">
-            <div class="punch-hole"></div>
-            <div class="status-bar">
-                <span>09:41</span>
-                <span>📶 🔋</span>
-            </div>
-            
-            <div id="lockscreen" class="layer">
-                <h1 style="font-size: 3.5rem; margin: 0; font-weight: 200;">09:41</h1>
-                <p style="opacity: 0.8; font-size: 14px; margin-top: 10px;">Monday, April 20</p>
-            </div>
+        
+        <div id="phone-shell">
+            <div id="display-content">
+                <div class="punch-hole"></div>
+                
+                <div id="lockscreen" class="layer">
+                    <h1 style="font-size: 3.5rem; margin: 0; font-weight: 200;">09:41</h1>
+                </div>
 
-            <div id="homescreen" class="layer">
-                <div class="app-grid">
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <div class="app-icon" data-name="Settings" data-color="#fff" style="background:#eee;">⚙️</div>
-                        <span class="app-label">Settings</span>
+                <div id="homescreen" class="layer">
+                    <div class="app-grid">
+                        <div class="app-wrapper">
+                            <div class="app-icon" data-name="Settings" style="background:#eee;">⚙️</div>
+                            <span class="app-label">Settings</span>
+                        </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <div class="app-icon" data-name="Gallery" data-color="#fff" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">🖼️</div>
-                        <span class="app-label">Gallery</span>
+
+                    <div class="dock">
+                        <div class="app-icon" data-name="Phone" style="background:#2ecc71;">📞</div>
+                        <div class="app-icon" data-name="Chat" style="background:#3498db;">💬</div>
+                        <div class="app-icon" data-name="Music" style="background:#e67e22;">🎵</div>
+                        <div class="app-icon" data-name="Camera" style="background:#95a5a6;">📷</div>
                     </div>
                 </div>
 
-                <div class="dock">
-                    <div class="app-icon" data-name="Phone" data-color="#fff" style="background:#2ecc71;">📞</div>
-                    <div class="app-icon" data-name="Messages" data-color="#fff" style="background:#3498db;">💬</div>
-                    <div class="app-icon" data-name="Browser" data-color="#fff" style="background:#e67e22;">🌐</div>
-                    <div class="app-icon" data-name="Camera" data-color="#fff" style="background:#95a5a6;">📷</div>
+                <div id="app-window">
+                    <div id="app-content" style="padding: 60px 30px; color: #000;">
+                        <h2 id="app-title">App</h2>
+                        <p>Fluid Animation System</p>
+                    </div>
                 </div>
-            </div>
 
-            <div id="app-window">
-                <div id="settings-view" class="settings-content" style="display:none;">
-                    <h2 style="margin-bottom: 30px;">Settings</h2>
-                    <div class="settings-item"><span class="settings-icon">📶</span> Wi-Fi</div>
-                    <div class="settings-item"><span class="settings-icon">🌐</span> Bluetooth</div>
-                    <div class="settings-item"><span class="settings-icon">🔔</span> Notifications</div>
-                    <div class="settings-item"><span class="settings-icon">🔋</span> Battery</div>
-                    <div class="settings-item"><span class="settings-icon">📱</span> About Phone</div>
+                <div class="nav-trigger" id="nav-trigger">
+                    <div class="nav-bar" id="visual-bar"></div>
                 </div>
-                <div id="generic-view" style="display:none; padding: 50px; text-align:center;">
-                    <h2 id="app-title">App</h2>
-                    <p>HyperOS Experience</p>
-                </div>
-            </div>
-
-            <div class="nav-handle-container" id="nav-trigger">
-                <div class="nav-bar" id="visual-bar"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const phone = document.getElementById('phone-container');
+        const display = document.getElementById('display-content');
         const lockscreen = document.getElementById('lockscreen');
         const appWindow = document.getElementById('app-window');
         const visualBar = document.getElementById('visual-bar');
@@ -197,44 +176,34 @@
         let startY = 0;
         let isDragging = false;
 
-        // --- INSTANT APP LOGIC ---
-        document.querySelectorAll('.app-icon').forEach(icon => {
-            icon.addEventListener('pointerdown', (e) => {
-                if (!isPowerOn || !lockscreen.classList.contains('hidden_ls')) return;
-                
-                appWindow.style.transition = 'none';
-                appWindow.classList.remove('open');
-                void appWindow.offsetWidth;
+        // --- FIXED ONE-TAP OPENING ---
+        // Using global event delegation to catch all icons (Grid + Dock)
+        document.addEventListener('pointerdown', (e) => {
+            const icon = e.target.closest('.app-icon');
+            if (!icon || !isPowerOn || !lockscreen.classList.contains('hidden_ls')) return;
+            
+            // Interrupt current animation
+            appWindow.style.transition = 'none';
+            appWindow.classList.remove('open');
+            void appWindow.offsetWidth;
 
-                const name = icon.getAttribute('data-name');
-                const rect = icon.getBoundingClientRect();
-                const phoneRect = phone.getBoundingClientRect();
-                
-                const x = ((rect.left + rect.width/2) - phoneRect.left) / phoneRect.width * 100;
-                const y = ((rect.top + rect.height/2) - phoneRect.top) / phoneRect.height * 100;
-                
-                appWindow.style.transformOrigin = `${x}% ${y}%`;
-                
-                // Show Settings or Generic View
-                if(name === "Settings") {
-                    document.getElementById('settings-view').style.display = 'block';
-                    document.getElementById('generic-view').style.display = 'none';
-                    appWindow.style.background = "#fff";
-                } else {
-                    document.getElementById('settings-view').style.display = 'none';
-                    document.getElementById('generic-view').style.display = 'block';
-                    document.getElementById('app-title').innerText = name;
-                    appWindow.style.background = "#f4f4f4";
-                }
+            const name = icon.getAttribute('data-name');
+            const rect = icon.getBoundingClientRect();
+            const phoneRect = document.getElementById('phone-shell').getBoundingClientRect();
+            
+            const x = ((rect.left + rect.width/2) - phoneRect.left) / phoneRect.width * 100;
+            const y = ((rect.top + rect.height/2) - phoneRect.top) / phoneRect.height * 100;
+            
+            appWindow.style.transformOrigin = `${x}% ${y}%`;
+            document.getElementById('app-title').innerText = name;
 
-                requestAnimationFrame(() => {
-                    appWindow.style.transition = ''; 
-                    appWindow.classList.add('open');
-                });
+            requestAnimationFrame(() => {
+                appWindow.style.transition = ''; 
+                appWindow.classList.add('open');
             });
         });
 
-        // --- SWIPE LOGIC ---
+        // --- SWIPE GESTURE ---
         const startAction = (e) => { if (!isPowerOn) return; isDragging = true; startY = e.clientY || (e.touches ? e.touches[0].clientY : 0); };
         const moveAction = (e) => {
             if (!isDragging) return;
@@ -261,16 +230,16 @@
         window.addEventListener('pointermove', moveAction);
         window.addEventListener('pointerup', endAction);
 
-        // --- POWER ---
+        // --- POWER (Invisible Screen, Visible Phone) ---
         pwrBtn.addEventListener('click', () => {
             if (isPowerOn) {
                 appWindow.classList.remove('open');
                 lockscreen.classList.remove('hidden_ls');
-                phone.classList.add('screen-off');
+                display.classList.add('screen-off'); // Only hide internal display
                 visualBar.classList.remove('dark-bar');
                 isPowerOn = false;
             } else {
-                phone.classList.remove('screen-off');
+                display.classList.remove('screen-off');
                 isPowerOn = true;
             }
         });
