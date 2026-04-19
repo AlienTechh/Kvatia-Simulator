@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HyperOS Pro - Smoothness Test Fix</title>
+    <title>HyperOS Pro - Instant Response Fix</title>
     <style>
         :root {
             --phone-width: 310px;
@@ -83,6 +83,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 24px; cursor: pointer; transition: transform 0.1s;
             border: 1px solid rgba(255,255,255,0.1);
+            touch-action: none; /* Prevents scroll interference */
         }
         .app-icon:active { transform: scale(0.85); }
         .app-label { color: white; font-size: 10px; margin-top: 5px; text-align: center; }
@@ -97,15 +98,14 @@
 
         #app-window.open { transform: scale(1); opacity: 1; border-radius: var(--inner-radius); pointer-events: auto; }
 
-        .settings-content { padding: 50px 20px; color: #000; width: 100%; }
-        .settings-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
-        .settings-icon { width: 30px; margin-right: 15px; font-size: 18px; }
-
         .nav-handle-container {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 50px;
-            z-index: 150; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 8px; cursor: grab;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
+            z-index: 150; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 8px;
         }
-        .nav-bar { width: 100px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 10px; }
+        .nav-bar { 
+            width: 100px; height: 4px; background: rgba(255,255,255,0.6); border-radius: 10px; 
+            transition: background 0.2s; /* Removed transform transition */
+        }
         .dark-bar { background: rgba(0,0,0,0.3); }
         .hidden_ls { transform: translateY(-100%); pointer-events: none; }
     </style>
@@ -144,14 +144,13 @@
                 </div>
 
                 <div id="app-window">
-                    <div id="settings-view" class="settings-content" style="display:none;">
+                    <div id="settings-view" style="display:none; padding: 50px 20px; color:#000;">
                         <h2>Settings</h2>
-                        <div class="settings-item"><span>📶</span> Wi-Fi</div>
-                        <div class="settings-item"><span>📱</span> About Phone</div>
+                        <p>Fluidity: 100%</p>
                     </div>
-                    <div id="generic-view" style="display:none; padding: 50px; text-align:center;">
+                    <div id="generic-view" style="display:none; padding: 50px; text-align:center; color:#000;">
                         <h2 id="app-title">App</h2>
-                        <p>Infinite Smoothness Enabled</p>
+                        <p>Instant One-Tap Active</p>
                     </div>
                 </div>
 
@@ -175,15 +174,15 @@
         let startY = 0;
         let isDragging = false;
 
-        // FIXED: Universal listener for Grid AND Dock icons
+        // FIXED: Forced Instant One-Tap with PointerDown and PreventDefault
         document.querySelectorAll('.app-icon').forEach(icon => {
             icon.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); // Stop any ghost clicks or scrolls
                 if (!isPowerOn || !lockscreen.classList.contains('hidden_ls')) return;
                 
-                // CRITICAL: Instant Reset for Smoothness Test
                 appWindow.style.transition = 'none';
                 appWindow.classList.remove('open');
-                void appWindow.offsetWidth; // Force Reflow
+                void appWindow.offsetWidth;
 
                 const name = icon.getAttribute('data-name');
                 const rect = icon.getBoundingClientRect();
@@ -212,13 +211,8 @@
             });
         });
 
+        // SWIPE LOGIC (Animation removed)
         const startAction = (e) => { if (!isPowerOn) return; isDragging = true; startY = e.clientY || (e.touches ? e.touches[0].clientY : 0); };
-        const moveAction = (e) => {
-            if (!isDragging) return;
-            const currentY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-            const diff = startY - currentY;
-            if (diff > 0) visualBar.style.transform = `translateY(-${Math.min(diff/3, 20)}px)`;
-        };
         const endAction = (e) => {
             if (!isDragging) return;
             const endY = (e.clientY === undefined) ? e.changedTouches[0].clientY : e.clientY;
@@ -230,12 +224,10 @@
                     appWindow.classList.remove('open');
                 }
             }
-            visualBar.style.transform = `translateY(0)`;
             isDragging = false;
         };
 
         trigger.addEventListener('pointerdown', startAction);
-        window.addEventListener('pointermove', moveAction);
         window.addEventListener('pointerup', endAction);
 
         pwrBtn.addEventListener('click', () => {
