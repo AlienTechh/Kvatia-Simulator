@@ -42,7 +42,6 @@
             border-radius: 0 4px 4px 0; cursor: pointer; z-index: 3000;
         }
 
-        /* UPDATED: Solid hardware bezel look */
         #phone-container {
             width: 87.5%; 
             height: 93.8%;
@@ -52,13 +51,11 @@
             overflow: hidden;
             touch-action: none;
             isolation: isolate;
-            /* This border IS the bezel */
             border: 8px solid #000;
             box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* FIXED BEZELS: Subtle reflection on top of the black frame */
         .bezel-fix {
             position: absolute;
             top: -8px; left: -8px; right: -8px; bottom: -8px;
@@ -90,7 +87,7 @@
         
         #homescreen-wall {
             width: 100%; height: 100%;
-            background-image: url('https://images.unsplash.com/photo-1635776062127-d379bfcba9f8?auto=format&fit=crop&q=80&w=600');
+            background-image: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=600');
             background-size: cover; background-position: center;
             transition: transform var(--anim-speed) var(--fluid-bezier), filter var(--anim-speed) var(--fluid-bezier);
         }
@@ -99,6 +96,12 @@
             transform: scale(1.18);
             filter: blur(20px) brightness(0.7);
         }
+        
+        .app-open-active .app-grid, 
+        .app-open-active .dock {
+            filter: blur(10px);
+            opacity: 0.5;
+        }
 
         .layer {
             position: absolute; width: 100%; height: 100%;
@@ -106,21 +109,28 @@
         }
 
         #lockscreen {
-            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600');
+            background-image: url('https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&q=80&w=600');
             background-size: cover; background-position: center;
             z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
 
+        .lock-clock { font-size: 3.5rem; font-weight: 200; margin: 0; letter-spacing: -1px; }
+        .lock-date { font-size: 0.9rem; font-weight: 400; opacity: 0.8; margin-top: -5px; }
+
         .unlocked-anim { transform: scale(1.4) !important; opacity: 0 !important; pointer-events: none; }
 
         #homescreen { z-index: 40; padding: 50px 20px; box-sizing: border-box; }
-        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .app-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; 
+            transition: filter var(--anim-speed) var(--fluid-bezier), opacity 0.4s ease;
+        }
 
         .dock {
             position: absolute; bottom: 15px; left: 10px; right: 10px;
             height: 65px; background: rgba(255,255,255,0.12);
             backdrop-filter: blur(25px); border-radius: 24px;
             display: flex; justify-content: space-evenly; align-items: center;
+            transition: filter var(--anim-speed) var(--fluid-bezier), opacity 0.4s ease;
         }
 
         .app-icon {
@@ -132,24 +142,29 @@
             overflow: hidden; box-sizing: border-box;
         }
 
-        /* FIXED: Shrunk Messages Icon padding to 16px */
         .app-icon.msg-special { 
             background: #fff; 
-            padding: 16px; 
         }
+        
+        /* ADJUSTED: Messages picture made smaller via lower width/height */
+        .app-icon.msg-special img {
+            width: 65%;
+            height: 65%;
+        }
+
         .app-icon img { width: 100%; height: 100%; object-fit: contain; }
         .app-icon:active { transform: scale(0.85); }
-        .app-label { color: white; font-size: 10px; margin-top: 5px; text-align: center; }
 
         #app-window {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 60; transform: scale(0); opacity: 0;
-            border-radius: 80px; pointer-events: none;
+            border-radius: var(--inner-radius);
+            pointer-events: none;
             transition: transform var(--anim-speed) var(--fluid-bezier), opacity 0.3s ease, border-radius var(--anim-speed) var(--fluid-bezier);
             background: #fff;
         }
 
-        #app-window.open { transform: scale(1); opacity: 1; border-radius: 0; pointer-events: auto; }
+        #app-window.open { transform: scale(1); opacity: 1; border-radius: calc(var(--inner-radius) - 8px); pointer-events: auto; }
 
         .nav-handle-container {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
@@ -168,10 +183,11 @@
             
             <div id="display-content">
                 <div class="punch-hole"></div>
-                <div class="status-bar"><span>09:41</span><span>📶 🔋</span></div>
+                <div class="status-bar"><span></span><span>📶 🔋</span></div>
                 
                 <div id="lockscreen" class="layer">
-                    <h1 style="font-size: 3.2rem; margin: 0; font-weight: 200;">09:41</h1>
+                    <h1 class="lock-clock" id="clock">09:41</h1>
+                    <span class="lock-date" id="date">Monday, April 20</span>
                 </div>
 
                 <div id="homescreen" class="layer">
@@ -182,11 +198,9 @@
                     <div class="app-grid">
                         <div style="display:flex; flex-direction:column; align-items:center;">
                             <div class="app-icon" data-name="Settings"><img src="https://hyperosupdates.com/wp-content/themes/miuidownload/icons/com.android.settings.webp"></div>
-                            <span class="app-label">Settings</span>
                         </div>
                         <div style="display:flex; flex-direction:column; align-items:center;">
                             <div class="app-icon" data-name="Gallery"><img src="https://hyperosupdates.com/wp-content/themes/miuidownload/icons/com.miui.gallery.webp"></div>
-                            <span class="app-label">Gallery</span>
                         </div>
                     </div>
 
@@ -199,10 +213,7 @@
                 </div>
 
                 <div id="app-window">
-                    <div id="app-content" style="padding: 70px 25px; color:#000;">
-                        <h2 id="app-title">Settings</h2>
-                        <p>Solid hardware bezels and scaled icon sizing.</p>
-                    </div>
+                    <div id="app-content" style="padding: 70px 25px; color:#000;"></div>
                 </div>
 
                 <div class="nav-handle-container" id="nav-trigger">
@@ -213,6 +224,18 @@
     </div>
 
     <script>
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            
+            document.getElementById('clock').innerText = `${hours}:${minutes}`;
+            document.getElementById('date').innerText = now.toLocaleDateString('en-US', options);
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
         const lockscreen = document.getElementById('lockscreen');
         const appWindow = document.getElementById('app-window');
         const visualBar = document.getElementById('visual-bar');
@@ -235,7 +258,6 @@
                 phone.classList.remove('app-open-active');
                 void appWindow.offsetWidth;
 
-                const name = icon.getAttribute('data-name');
                 const rect = icon.getBoundingClientRect();
                 const phoneRect = phone.getBoundingClientRect();
                 
@@ -243,7 +265,6 @@
                 const y = ((rect.top + rect.height/2) - phoneRect.top) / phoneRect.height * 100;
                 
                 appWindow.style.transformOrigin = `${x}% ${y}%`;
-                document.getElementById('app-title').innerText = name;
 
                 requestAnimationFrame(() => {
                     appWindow.style.transition = ''; 
