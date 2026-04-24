@@ -21,11 +21,22 @@
         .joystick-zone { position: absolute; bottom: 0; width: 50%; height: 60%; z-index: 50; display: none; }
         #left-zone { left: 0; }
         #right-zone { right: 0; }
-        .stick-base { position: absolute; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; display: none; transform: translate(-50%, -50%); pointer-events: none; }
-        .stick-knob { position: absolute; width: 40px; height: 40px; background: #f6ca2d; border-radius: 50%; top: 30px; left: 30px; opacity: 0.7; }
+        /* Visible bases added here */
+        .stick-base { position: absolute; width: 100px; height: 100px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: none; transform: translate(-50%, -50%); pointer-events: none; }
+        .stick-knob { position: absolute; width: 40px; height: 40px; background: #f6ca2d; border-radius: 50%; top: 30px; left: 30px; opacity: 0.8; }
+
+        /* NEW: Mobile Menu Button Style */
+        #mobile-pause-btn {
+            position: absolute; top: 20px; left: 20px; width: 50px; height: 50px;
+            background: rgba(255,255,255,0.2); border: 2px solid white; border-radius: 10px;
+            color: white; font-size: 30px; display: none; align-items: center; justify-content: center;
+            z-index: 101; cursor: pointer;
+        }
     </style>
 </head>
 <body>
+
+    <div id="mobile-pause-btn" onclick="window.pauseGameMobile()">☰</div>
 
     <div id="menu" class="overlay">
         <h1 style="font-size: 55px; color: #f6ca2d; margin: 0; text-shadow: 0 0 20px rgba(246,202,45,0.5);">Kvatia Simulator</h1>
@@ -70,6 +81,12 @@
         let returnTarget = 'menu';
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
 
+        // NEW: Function to trigger pause on mobile
+        window.pauseGameMobile = () => {
+            isPlaying = false;
+            document.getElementById('pause-overlay').style.display = 'flex';
+        };
+
         window.startGame = () => {
             if (isMobile && document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -83,7 +100,10 @@
                     clearInterval(iv); 
                     document.getElementById('loading').style.display='none'; 
                     document.getElementById('gui').style.display='block'; 
-                    if(isMobile) document.querySelectorAll('.joystick-zone').forEach(z => z.style.display = 'block');
+                    if(isMobile) {
+                        document.querySelectorAll('.joystick-zone').forEach(z => z.style.display = 'block');
+                        document.getElementById('mobile-pause-btn').style.display = 'flex';
+                    }
                     window.resumeGame(); 
                 }
             }, 40);
@@ -92,7 +112,7 @@
         window.openSettings = (t) => { returnTarget = t; document.querySelectorAll('.overlay').forEach(e=>e.style.display='none'); document.getElementById('settings-menu').style.display='flex'; };
         window.closeSettings = () => { document.getElementById('settings-menu').style.display='none'; document.getElementById(returnTarget==='menu'?'menu':'pause-overlay').style.display='flex'; sensitivity = document.getElementById('sens-slider').value * 0.0004; };
         window.resumeGame = () => { if(!isMobile) document.body.requestPointerLock(); document.getElementById('pause-overlay').style.display='none'; isPlaying = true; };
-        window.quitToMenu = () => { isPlaying = false; document.getElementById('pause-overlay').style.display='none'; document.getElementById('gui').style.display='none'; document.getElementById('menu').style.display='flex'; if(isMobile && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); };
+        window.quitToMenu = () => { isPlaying = false; document.getElementById('pause-overlay').style.display='none'; document.getElementById('gui').style.display='none'; document.getElementById('menu').style.display='flex'; if(isMobile) document.getElementById('mobile-pause-btn').style.display = 'none'; if(isMobile && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); };
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x7ec0ee);
@@ -174,7 +194,6 @@
                 const speed = 0.4;
                 const dx = Math.sin(yaw), dz = Math.cos(yaw);
                 
-                // FIXED: W is now forward, S is back
                 const moveForward = (keys.w ? -1 : 0) + (keys.s ? 1 : 0) + touchMove.y;
                 const moveRight = (keys.d ? 1 : 0) - (keys.a ? 1 : 0) + touchMove.x;
 
