@@ -17,45 +17,42 @@
         #crosshair { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: rgba(255,255,255,0.9); border: 1px solid #000; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; pointer-events: none; }
 
         #inventory-wheel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 4px solid #f6ca2d; display: none; grid-template-columns: 1fr 1fr; align-items: center; justify-items: center; z-index: 10000; pointer-events: auto; }
-        .inv-slot { width: 100px; height: 100px; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); cursor: pointer; border-radius: 10px; }
+        .inv-slot { width: 100px; height: 100px; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 10px; font-weight: bold; }
 
         #gui { position: absolute; top: 20px; right: 20px; color: #f6ca2d; text-shadow: 3px 3px #000; z-index: 10; pointer-events: none; display: none; text-align: right; }
         #mobile-controls { position: absolute; bottom: 40px; right: 40px; display: none; pointer-events: auto; z-index: 101; }
-        #mobile-attack-btn { width: 90px; height: 90px; background: #a32a2a; border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 35px; }
+        #mobile-attack-btn { width: 90px; height: 90px; background: #a32a2a; border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 35px; cursor: pointer; }
+        #mobile-weapon-btn { position: absolute; top: 20px; left: 20px; width: 70px; height: 70px; background: #444; border: 2px solid #fff; border-radius: 10px; display: none; align-items: center; justify-content: center; color: white; font-size: 30px; pointer-events: auto; z-index: 102; }
     </style>
 </head>
 <body>
     <div id="crosshair"></div>
     <div id="ui-layer">
+        <div id="mobile-weapon-btn" onclick="toggleInv(true)">🎒</div>
         <div id="mobile-controls">
             <div id="mobile-attack-btn" onclick="performAttack()">👊</div>
         </div>
-
         <div id="menu" class="overlay">
             <h1>Kvatia Simulator</h1>
             <button class="btn" onclick="startGame()">PLAY GAME</button>
             <button class="btn" style="background:#333;" onclick="openSettings('menu')">SETTINGS</button>
         </div>
-
-        <div id="inventory-wheel">
-            <div class="inv-slot" onclick="selectWeapon('fists')">FISTS</div>
-            <div class="inv-slot" onclick="selectWeapon('gun')">GUN</div>
+        <div id="inventory-wheel" onclick="toggleInv(false)">
+            <div class="inv-slot" onclick="selectWeapon('fists'); event.stopPropagation();">FISTS</div>
+            <div class="inv-slot" onclick="selectWeapon('gun'); event.stopPropagation();">GUN</div>
         </div>
-
         <div id="settings-menu" class="overlay" style="background: rgba(0,0,0,0.95);">
             <h1>SETTINGS</h1>
             <label style="margin-bottom: 10px;">Sensitivity</label>
             <input type="range" id="sens-slider" min="1" max="50" value="25" style="width: 250px;">
             <button class="btn" onclick="closeSettings()">SAVE & BACK</button>
         </div>
-
         <div id="pause-overlay" class="overlay" style="background: rgba(0,0,0,0.85);">
             <h1>PAUSED</h1>
             <button class="btn" onclick="resumeGame()">RESUME</button>
             <button class="btn" style="background:#333;" onclick="openSettings('pause')">SETTINGS</button>
             <button class="btn" style="background:#a32a2a;" onclick="location.reload()">QUIT</button>
         </div>
-
         <div id="loading" class="overlay" style="background: #000;">
             <h2 id="load-text">PREPARING CITY...</h2>
             <div style="width: 350px; height: 15px; border: 2px solid #fff; border-radius: 10px; overflow: hidden;">
@@ -63,7 +60,6 @@
             </div>
         </div>
     </div>
-
     <div id="gui">
         <h1 style="margin:0; font-size: 45px;">$1,000,000</h1>
         <div id="active-weapon" style="font-size: 22px; color: white; font-weight: bold;">WEAPON: FISTS</div>
@@ -73,24 +69,22 @@
     <script type="module">
         import * as THREE from 'three';
 
-        let isPlaying = false, sensitivity = 0.002, walkCycle = 0, currentWeapon = 'fists', settingsContext = 'menu';
+        let isPlaying = false, sensitivity = 0.002, currentWeapon = 'fists', settingsContext = 'menu';
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
         const npcs = [];
         const texLoader = new THREE.TextureLoader();
-        
-        // --- PROXY FIX FOR IMAGES ---
         const proxy = "https://images.weserv.nl/?url=";
 
         // --- ASSET LOADING ---
         const roadTex = texLoader.load(proxy + 'i.pinimg.com/564x/28/9f/08/289f08b9073de76ec7b2d55dbf34e5d8.jpg');
         roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
         roadTex.repeat.set(1, 100);
-        roadTex.rotation = Math.PI / 2; // ROAD FLIPPED
+        roadTex.rotation = Math.PI / 2;
 
         const buildingTex = texLoader.load(proxy + 'img.freepik.com/premium-photo/window-facade-office-building_63253-6934.jpg');
         buildingTex.wrapS = buildingTex.wrapT = THREE.RepeatWrapping;
 
-        // --- AUDIO ENGINE ---
+        // --- AUDIO ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -109,15 +103,13 @@
             }
         }
 
-        // --- BIGGER NPC BUILDER ---
+        // --- NPC BUILDER ---
         function createDetailedNPC() {
             const group = new THREE.Group();
             const skin = new THREE.MeshStandardMaterial({color: 0xffdbac});
             const clothes = new THREE.MeshStandardMaterial({color: Math.random() * 0xffffff});
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.8), clothes);
-            torso.position.y = 2.1; group.add(torso);
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), skin);
-            head.position.y = 3.35; group.add(head);
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.8), clothes); torso.position.y = 2.1; group.add(torso);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), skin); head.position.y = 3.35; group.add(head);
             const armGeo = new THREE.BoxGeometry(0.35, 1.2, 0.35);
             const lArm = new THREE.Mesh(armGeo, skin); lArm.position.set(-0.85, 2.1, 0); group.add(lArm);
             const rArm = new THREE.Mesh(armGeo, skin); rArm.position.set(0.85, 2.1, 0); group.add(rArm);
@@ -127,7 +119,7 @@
             return group;
         }
 
-        // --- INTERFACE CONTROL ---
+        // --- INTERFACE ---
         window.toggleInv = (show) => {
             document.getElementById('inventory-wheel').style.display = show ? 'grid' : 'none';
             if(!isMobile && show) document.exitPointerLock();
@@ -158,49 +150,42 @@
             document.getElementById('loading').style.display = 'flex';
             let p = 0;
             const iv = setInterval(() => {
-                p += 4; 
-                document.getElementById('loader-fill').style.width = p+'%';
+                p += 4; document.getElementById('loader-fill').style.width = p+'%';
                 if(p >= 100) { 
                     clearInterval(iv);
                     document.getElementById('loading').style.display='none';
                     document.getElementById('gui').style.display='block';
                     document.getElementById('crosshair').style.display='block';
-                    if(isMobile) document.getElementById('mobile-controls').style.display = 'block';
+                    if(isMobile) { document.getElementById('mobile-controls').style.display = 'block'; document.getElementById('mobile-weapon-btn').style.display = 'flex'; }
                     window.resumeGame();
                 }
             }, 40);
         };
 
-        window.resumeGame = () => {
-            document.querySelectorAll('.overlay').forEach(e=>e.style.display='none');
-            isPlaying = true;
-            if(!isMobile) document.body.requestPointerLock();
+        window.resumeGame = () => { 
+            document.querySelectorAll('.overlay').forEach(e=>e.style.display='none'); 
+            isPlaying = true; 
+            if(!isMobile) document.body.requestPointerLock(); 
         };
 
-        window.pauseGame = () => { isPlaying = false; document.getElementById('pause-overlay').style.display = 'flex'; };
-        
-        window.openSettings = (ctx) => { 
-            settingsContext = ctx;
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('pause-overlay').style.display = 'none';
-            document.getElementById('settings-menu').style.display='flex'; 
+        window.pauseGame = () => { 
+            isPlaying = false; 
+            document.getElementById('pause-overlay').style.display = 'flex'; 
         };
 
-        window.closeSettings = () => { 
-            sensitivity = document.getElementById('sens-slider').value * 0.00015;
-            document.getElementById('settings-menu').style.display='none'; 
-            if(settingsContext === 'menu') document.getElementById('menu').style.display = 'flex';
-            else document.getElementById('pause-overlay').style.display = 'flex';
-        };
-
+        // ESC KEY FIX: Listen for pointer lock exit
         document.addEventListener('pointerlockchange', () => {
-            if (!document.pointerLockElement && isPlaying && !isMobile) {
+            if (document.pointerLockElement === null && isPlaying) {
+                // If inventory or settings are NOT open, it means the user pressed ESC
                 if(document.getElementById('inventory-wheel').style.display !== 'grid' && 
                    document.getElementById('settings-menu').style.display !== 'flex') {
                     window.pauseGame();
                 }
             }
         });
+
+        window.openSettings = (ctx) => { settingsContext = ctx; document.getElementById('menu').style.display = 'none'; document.getElementById('pause-overlay').style.display = 'none'; document.getElementById('settings-menu').style.display='flex'; };
+        window.closeSettings = () => { sensitivity = document.getElementById('sens-slider').value * 0.00015; document.getElementById('settings-menu').style.display='none'; if(settingsContext === 'menu') document.getElementById('menu').style.display = 'flex'; else document.getElementById('pause-overlay').style.display = 'flex'; };
 
         // --- SCENE SETUP ---
         const scene = new THREE.Scene();
@@ -211,46 +196,38 @@
         document.body.appendChild(renderer.domElement);
 
         scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-        sun.position.set(50, 150, 50); scene.add(sun);
+        const sun = new THREE.DirectionalLight(0xffffff, 1.2); sun.position.set(50, 150, 50); scene.add(sun);
 
-        // Ground Grass
-        const grass = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshStandardMaterial({ color: 0x2d4d2d }));
-        grass.rotation.x = -Math.PI / 2; scene.add(grass);
+        const grass = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshStandardMaterial({ color: 0x2d4d2d })); grass.rotation.x = -Math.PI / 2; scene.add(grass);
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(40, 3000), new THREE.MeshStandardMaterial({ map: roadTex })); road.rotation.x = -Math.PI / 2; road.position.y = 0.05; scene.add(road);
 
-        // ROAD
-        const road = new THREE.Mesh(new THREE.PlaneGeometry(40, 3000), new THREE.MeshStandardMaterial({ map: roadTex }));
-        road.rotation.x = -Math.PI / 2; road.position.y = 0.05;
-        scene.add(road);
-
-        // BUILDINGS
         for(let i=0; i<30; i++) {
             const h = 40 + Math.random() * 80;
-            const bMat = new THREE.MeshStandardMaterial({ map: buildingTex.clone() });
-            bMat.map.repeat.set(1, h/10); 
+            const bMat = new THREE.MeshStandardMaterial({ map: buildingTex.clone() }); bMat.map.repeat.set(1, h/10); 
             const b = new THREE.Mesh(new THREE.BoxGeometry(20, h, 20), bMat);
-            const side = Math.random() > 0.5 ? 1 : -1;
-            b.position.set(side * 40, h/2, (Math.random()-0.5) * 1000);
-            scene.add(b);
+            const side = Math.random() > 0.5 ? 1 : -1; b.position.set(side * 40, h/2, (Math.random()-0.5) * 1000); scene.add(b);
         }
 
         for(let i=0; i<25; i++) {
-            const n = createDetailedNPC();
-            n.position.set((Math.random()-0.5)*100, 0, (Math.random()-0.5)*600);
-            scene.add(n); npcs.push(n);
+            const n = createDetailedNPC(); n.position.set((Math.random()-0.5)*100, 0, (Math.random()-0.5)*600); scene.add(n); npcs.push(n);
         }
 
-        // --- KVATIA THE PLAYER ---
+        // --- PLAYER & REALISTIC GUN ---
         const kvatia = new THREE.Group();
         const kvatiaVisuals = new THREE.Group(); 
-        const kvatiaBody = new THREE.Mesh(new THREE.SphereGeometry(1.4, 32, 32), new THREE.MeshStandardMaterial({color: 0xffcc00}));
-        kvatiaBody.scale.set(1, 0.85, 1.2); kvatiaBody.position.y = 1.2; kvatiaVisuals.add(kvatiaBody);
-        const kvatiaHead = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), new THREE.MeshStandardMaterial({color: 0xffcc00}));
-        kvatiaHead.position.set(0, 2.2, 0.6); kvatiaVisuals.add(kvatiaHead);
-        const beak = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.6), new THREE.MeshStandardMaterial({color: 0xff6600}));
-        beak.position.set(0, 2.1, 1.3); kvatiaVisuals.add(beak);
-        const gunModel = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 1.2), new THREE.MeshStandardMaterial({color: 0x222}));
-        gunModel.position.set(1.1, 1.5, 0.8); gunModel.visible = false;
+        const kvatiaBody = new THREE.Mesh(new THREE.SphereGeometry(1.4, 32, 32), new THREE.MeshStandardMaterial({color: 0xffcc00})); kvatiaBody.scale.set(1, 0.85, 1.2); kvatiaBody.position.y = 1.2; kvatiaVisuals.add(kvatiaBody);
+        const kvatiaHead = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), new THREE.MeshStandardMaterial({color: 0xffcc00})); kvatiaHead.position.set(0, 2.2, 0.6); kvatiaVisuals.add(kvatiaHead);
+        const beak = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.6), new THREE.MeshStandardMaterial({color: 0xff6600})); beak.position.set(0, 2.1, 1.3); kvatiaVisuals.add(beak);
+
+        const gunModel = new THREE.Group();
+        const metalMat = new THREE.MeshStandardMaterial({color: 0x888888, metalness: 0.9, roughness: 0.2});
+        const gripMat = new THREE.MeshStandardMaterial({color: 0x222222, metalness: 0.1, roughness: 0.8});
+        const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.4, 1.2), metalMat); barrel.position.z = 0.5; gunModel.add(barrel);
+        const grip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.3), gripMat); grip.position.set(0, -0.4, 0.1); grip.rotation.x = 0.2; gunModel.add(grip);
+        const triggerGuard = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.3), gripMat); triggerGuard.position.set(0, -0.2, 0.4); gunModel.add(triggerGuard);
+
+        gunModel.position.set(1.2, 1.4, 0.8);
+        gunModel.visible = false;
         kvatiaVisuals.add(gunModel);
         kvatiaVisuals.rotation.y = Math.PI; 
         kvatia.add(kvatiaVisuals);
@@ -258,44 +235,37 @@
 
         const keys = { w:false, a:false, s:false, d:false };
         let yaw = 0, pitch = 0;
+        let touchStartX = 0, touchStartY = 0, mobileMoveX = 0, mobileMoveY = 0;
+
+        window.addEventListener('touchstart', (e) => { if (!isPlaying) return; const touch = e.touches[0]; if (touch.clientX < window.innerWidth / 2) { touchStartX = touch.clientX; touchStartY = touch.clientY; } });
+        window.addEventListener('touchmove', (e) => {
+            if (!isPlaying) return; const touch = e.touches[0];
+            if (touchStartX > 0) { mobileMoveX = (touch.clientX - touchStartX) / 50; mobileMoveY = (touchStartY - touch.clientY) / 50; mobileMoveX = Math.max(-1, Math.min(1, mobileMoveX)); mobileMoveY = Math.max(-1, Math.min(1, mobileMoveY)); }
+            else { yaw -= (touch.clientX - (window.innerWidth/2)) * 0.0001; pitch += (touch.clientY - (window.innerHeight/2)) * 0.0001; }
+        });
+        window.addEventListener('touchend', () => { touchStartX = 0; touchStartY = 0; mobileMoveX = 0; mobileMoveY = 0; });
 
         function animate() {
             requestAnimationFrame(animate);
             if (isPlaying) {
-                const speed = 0.7;
-                const dx = Math.sin(yaw), dz = Math.cos(yaw);
+                const speed = 0.7; const dx = Math.sin(yaw), dz = Math.cos(yaw);
                 if(keys.w) { kvatia.position.x -= dx * speed; kvatia.position.z -= dz * speed; }
                 if(keys.s) { kvatia.position.x += dx * speed; kvatia.position.z += dz * speed; }
                 if(keys.a) { kvatia.position.x -= dz * speed; kvatia.position.z += dx * speed; }
                 if(keys.d) { kvatia.position.x += dz * speed; kvatia.position.z -= dx * speed; }
+                if (mobileMoveY !== 0 || mobileMoveX !== 0) { kvatia.position.x -= (dx * mobileMoveY + dz * mobileMoveX) * speed; kvatia.position.z -= (dz * mobileMoveY - dx * mobileMoveX) * speed; }
                 npcs.forEach(n => { n.lookAt(kvatia.position.x, 0, kvatia.position.z); });
             }
             kvatia.rotation.y = yaw;
-            const camDist = 22;
-            camera.position.set(
-                kvatia.position.x + Math.sin(yaw) * Math.cos(pitch) * camDist,
-                kvatia.position.y + 12 + Math.sin(pitch) * camDist,
-                kvatia.position.z + Math.cos(yaw) * Math.cos(pitch) * camDist
-            );
+            const camDist = 22; camera.position.set(kvatia.position.x + Math.sin(yaw) * Math.cos(pitch) * camDist, kvatia.position.y + 12 + Math.sin(pitch) * camDist, kvatia.position.z + Math.cos(yaw) * Math.cos(pitch) * camDist);
             camera.lookAt(kvatia.position.x, kvatia.position.y + 2.5, kvatia.position.z);
             renderer.render(scene, camera);
         }
         animate();
 
-        document.addEventListener('keydown', (e) => { 
-            if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; 
-            if(e.key.toLowerCase() === 'q') toggleInv(true);
-        });
-        document.addEventListener('keyup', (e) => { 
-            if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; 
-            if(e.key.toLowerCase() === 'q') toggleInv(false);
-        });
-        document.addEventListener('mousemove', (e) => { 
-            if(document.pointerLockElement) { 
-                yaw -= e.movementX * sensitivity; 
-                pitch = Math.max(-0.8, Math.min(1.2, pitch + e.movementY * sensitivity)); 
-            } 
-        });
+        document.addEventListener('keydown', (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; if(e.key.toLowerCase() === 'q') toggleInv(true); });
+        document.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; if(e.key.toLowerCase() === 'q') toggleInv(false); });
+        document.addEventListener('mousemove', (e) => { if(document.pointerLockElement) { yaw -= e.movementX * sensitivity; pitch = Math.max(-0.8, Math.min(1.2, pitch + e.movementY * sensitivity)); } });
         document.addEventListener('mousedown', () => { if(isPlaying && !isMobile) performAttack(); });
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     </script>
