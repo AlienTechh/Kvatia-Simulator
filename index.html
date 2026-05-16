@@ -3,44 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kvatia Simulator Ultra</title>
+    <title>Kvatia Simulator Ultra Mobile Pro</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Arial Black', sans-serif; touch-action: none; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #000; 
+            font-family: 'Arial Black', sans-serif; 
+            touch-action: none; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; pointer-events: none; }
         .overlay { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; pointer-events: auto; }
         
         #menu { display: flex; background: url('https://cdn.oreateai.com/gpt-image/1777394306_113542062.png') no-repeat center center; background-size: cover; }
         #menu h1 { font-size: 55px; color: #f6ca2d; text-shadow: 0 0 20px rgba(0,0,0,1); }
-        .btn { background: #499149; color: white; border: 2px solid #fff; padding: 12px 40px; font-size: 20px; cursor: pointer; margin: 8px; border-radius: 8px; width: 250px; text-transform: uppercase; transition: transform 0.1s; }
+        
+        /* Universal Button Styling with Tap Highlights Disabled */
+        .btn { 
+            background: #499149; 
+            color: white; 
+            border: 2px solid #fff; 
+            padding: 12px 40px; 
+            font-size: 20px; 
+            cursor: pointer; 
+            margin: 8px; 
+            border-radius: 8px; 
+            width: 250px; 
+            text-transform: uppercase; 
+            transition: transform 0.1s; 
+            -webkit-tap-highlight-color: transparent;
+        }
         .btn:active { transform: scale(0.95); }
 
         #crosshair { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: rgba(255,255,255,0.9); border: 1px solid #000; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; pointer-events: none; }
 
-        #inventory-wheel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 4px solid #f6ca2d; display: none; grid-template-columns: 1fr 1fr; align-items: center; justify-items: center; z-index: 10000; pointer-events: auto; }
-        .inv-slot { width: 100px; height: 100px; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 10px; font-weight: bold; }
+        #inventory-wheel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 4px solid #f6ca2d; display: none; grid-template-columns: 1fr 1fr; align-items: center; justify-items: center; z-index: 10000; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+        .inv-slot { width: 100px; height: 100px; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 10px; font-weight: bold; -webkit-tap-highlight-color: transparent; }
 
-        #gui { position: absolute; top: 20px; right: 20px; color: #f6ca2d; text-shadow: 3px 3px #000; z-index: 10; pointer-events: none; display: none; text-align: right; }
-        #mobile-controls { position: absolute; bottom: 40px; right: 40px; display: none; pointer-events: auto; z-index: 101; }
-        #mobile-attack-btn { width: 90px; height: 90px; background: #a32a2a; border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 35px; cursor: pointer; }
-        #mobile-weapon-btn { position: absolute; top: 20px; left: 20px; width: 70px; height: 70px; background: #444; border: 2px solid #fff; border-radius: 10px; display: none; align-items: center; justify-content: center; color: white; font-size: 30px; pointer-events: auto; z-index: 102; }
+        #gui { position: absolute; top: 20px; left: 20px; color: #f6ca2d; text-shadow: 3px 3px #000; z-index: 10; pointer-events: none; display: none; text-align: left; }
+        
+        /* Fixed Mobile HUD Elements */
+        #mobile-hud { position: absolute; top: 20px; right: 20px; display: none; pointer-events: auto; z-index: 102; gap: 10px; }
+        .hud-btn { width: 60px; height: 60px; background: #222; border: 2px solid #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        /* Action Panel Right Side */
+        #mobile-actions { position: absolute; bottom: 40px; right: 40px; display: none; pointer-events: auto; z-index: 101; }
+        #mobile-attack-btn { width: 95px; height: 95px; background: #a32a2a; border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 38px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+        /* New Fixed D-PAD Movement Grid Left Side */
+        #mobile-dpad { position: absolute; bottom: 40px; left: 40px; display: none; grid-template-areas: ". up ." "left . right" ". down ."; gap: 8px; pointer-events: auto; z-index: 101; }
+        .dpad-btn { width: 65px; height: 65px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.8); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .dpad-btn:active { background: rgba(246, 202, 45, 0.6); }
+        #dpad-w { grid-area: up; }
+        #dpad-a { grid-area: left; }
+        #dpad-s { grid-area: down; }
+        #dpad-d { grid-area: right; }
 
         .settings-item { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
         .settings-item label { font-size: 18px; margin-bottom: 8px; color: #fff; text-transform: uppercase; }
-        select { background: #222; color: #fff; border: 2px solid #fff; padding: 10px; font-size: 16px; border-radius: 5px; width: 250px; cursor: pointer; outline: none; }
+        select { background: #222; color: #fff; border: 2px solid #fff; padding: 10px; font-size: 16px; border-radius: 5px; width: 250px; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body>
     <div id="crosshair"></div>
     <div id="ui-layer">
-        <div id="mobile-weapon-btn" onclick="toggleInv(true)">🎒</div>
-        <div id="mobile-controls">
+        <div id="mobile-hud">
+            <div class="hud-btn" onclick="toggleInv(true)">🎒</div>
+            <div class="hud-btn" style="background: #444;" onclick="window.pauseGame()">⚙️</div>
+        </div>
+
+        <div id="mobile-dpad">
+            <div id="dpad-w" class="dpad-btn">W</div>
+            <div id="dpad-a" class="dpad-btn">A</div>
+            <div id="dpad-s" class="dpad-btn">S</div>
+            <div id="dpad-d" class="dpad-btn">D</div>
+        </div>
+
+        <div id="mobile-actions">
             <div id="mobile-attack-btn" onclick="performAttack()">👊</div>
         </div>
+
         <div id="menu" class="overlay">
             <h1>Kvatia Simulator</h1>
             <button class="btn" onclick="startGame()">PLAY GAME</button>
             <button class="btn" style="background:#333;" onclick="openSettings('menu')">SETTINGS</button>
         </div>
+
         <div id="inventory-wheel" onclick="toggleInv(false)">
             <div class="inv-slot" onclick="selectWeapon('fists'); event.stopPropagation();">FISTS</div>
             <div class="inv-slot" onclick="selectWeapon('gun'); event.stopPropagation();">GUN</div>
@@ -48,12 +98,10 @@
         
         <div id="settings-menu" class="overlay" style="background: rgba(0,0,0,0.95);">
             <h1>SETTINGS</h1>
-            
             <div class="settings-item">
                 <label>Sensitivity</label>
                 <input type="range" id="sens-slider" min="1" max="50" value="25" style="width: 250px;">
             </div>
-
             <div class="settings-item">
                 <label>Graphics Quality</label>
                 <select id="graphics-select">
@@ -64,7 +112,6 @@
                     <option value="ultra">Ultra</option>
                 </select>
             </div>
-
             <button class="btn" onclick="closeSettings()">SAVE & BACK</button>
         </div>
 
@@ -74,6 +121,7 @@
             <button class="btn" style="background:#333;" onclick="openSettings('pause')">SETTINGS</button>
             <button class="btn" style="background:#a32a2a;" onclick="location.reload()">QUIT</button>
         </div>
+
         <div id="loading" class="overlay" style="background: #000;">
             <h2 id="load-text">PREPARING CITY...</h2>
             <div style="width: 350px; height: 15px; border: 2px solid #fff; border-radius: 10px; overflow: hidden;">
@@ -81,14 +129,26 @@
             </div>
         </div>
     </div>
+
     <div id="gui">
         <h1 style="margin:0; font-size: 45px;">$1,000,000</h1>
         <div id="active-weapon" style="font-size: 22px; color: white; font-weight: bold;">WEAPON: FISTS</div>
     </div>
 
-    <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
+    <script type="importmap">
+    { 
+        "imports": { 
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        } 
+    }
+    </script>
     <script type="module">
         import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
         let isPlaying = false, sensitivity = 0.002, currentWeapon = 'fists', settingsContext = 'menu';
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -96,37 +156,55 @@
         const texLoader = new THREE.TextureLoader();
         const proxy = "https://images.weserv.nl/?url=";
 
-        // --- REALISTIC GRAPHICS TEXTURE LOADING ---
+        let composer, bloomPass, motionBlurPass;
+        let usePostProcessing = true;
+        let lastYaw = 0, currentMotionBlurValue = 0;
+
+        // Unified key/movement tracking map for both desktop and D-pad clicks
+        const keys = { w:false, a:false, s:false, d:false };
+
+        // --- ASSET LOADING ---
         const roadTex = texLoader.load(proxy + 'i.pinimg.com/564x/28/9f/08/289f08b9073de76ec7b2d55dbf34e5d8.jpg');
         roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
-        roadTex.repeat.set(1, 120);
-        roadTex.rotation = Math.PI / 2;
-        roadTex.anisotropy = 16; // Maximum sharp viewing filter
+        roadTex.repeat.set(1, 120); roadTex.rotation = Math.PI / 2; roadTex.anisotropy = 16;
 
         const buildingTex = texLoader.load(proxy + 'img.freepik.com/premium-photo/window-facade-office-building_63253-6934.jpg');
-        buildingTex.wrapS = buildingTex.wrapT = THREE.RepeatWrapping;
-        buildingTex.anisotropy = 16;
+        buildingTex.wrapS = buildingTex.wrapT = THREE.RepeatWrapping; buildingTex.anisotropy = 16;
 
         const groundTex = texLoader.load(proxy + 'img.freepik.com/free-photo/green-grass-texture_1249-15.jpg');
-        groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
-        groundTex.repeat.set(40, 40);
-        groundTex.anisotropy = 8;
+        groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping; groundTex.repeat.set(40, 40); groundTex.anisotropy = 8;
 
-        // --- AUDIO ---
+        // --- AUDIO SYNTH ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const bufferSize = audioCtx.sampleRate * 0.4;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+
         function playSfx(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
             if (type === 'gun') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now);
-                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.start(); osc.stop(now + 0.15);
+                const noise = audioCtx.createBufferSource(); noise.buffer = noiseBuffer;
+                const noiseFilter = audioCtx.createBiquadFilter(); noiseFilter.type = 'bandpass'; noiseFilter.frequency.setValueAtTime(1000, now);
+                const noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.8, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+
+                const bassOsc = audioCtx.createOscillator(); const bassGain = audioCtx.createGain();
+                bassOsc.type = 'sine'; bassOsc.frequency.setValueAtTime(280, now); bassOsc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
+                bassGain.gain.setValueAtTime(0.9, now); bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                bassOsc.connect(bassGain); bassGain.connect(audioCtx.destination);
+
+                const clickOsc = audioCtx.createOscillator(); const clickGain = audioCtx.createGain();
+                clickOsc.type = 'triangle'; clickOsc.frequency.setValueAtTime(1600, now); clickGain.gain.setValueAtTime(0.12, now); clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                clickOsc.connect(clickGain); clickGain.connect(audioCtx.destination);
+
+                noise.start(now); bassOsc.start(now); clickOsc.start(now);
+                noise.stop(now + 0.2); bassOsc.stop(now + 0.2); clickOsc.stop(now + 0.05);
             } else {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(120, now);
-                gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(120, now); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                 osc.start(); osc.stop(now + 0.1);
             }
         }
@@ -147,7 +225,7 @@
             return group;
         }
 
-        // --- INTERFACE ---
+        // --- INTERFACE SYSTEMS ---
         window.toggleInv = (show) => {
             document.getElementById('inventory-wheel').style.display = show ? 'grid' : 'none';
             if(!isMobile && show) document.exitPointerLock();
@@ -165,10 +243,13 @@
         window.performAttack = () => {
             if(!isPlaying) return;
             playSfx(currentWeapon === 'gun' ? 'gun' : 'punch');
+            if (currentWeapon === 'gun' && gunSlide) {
+                gunSlide.position.z = -0.2;
+                setTimeout(() => gunSlide.position.z = 0.1, 70);
+            }
             npcs.forEach(n => {
                 if(kvatia.position.distanceTo(n.position) < (currentWeapon === 'gun' ? 80 : 12)) {
-                    n.rotation.x = Math.PI/2; 
-                    setTimeout(() => n.rotation.x = 0, 4000);
+                    n.rotation.x = Math.PI/2; setTimeout(() => n.rotation.x = 0, 4000);
                 }
             });
         };
@@ -184,7 +265,11 @@
                     document.getElementById('loading').style.display='none';
                     document.getElementById('gui').style.display='block';
                     document.getElementById('crosshair').style.display='block';
-                    if(isMobile) { document.getElementById('mobile-controls').style.display = 'block'; document.getElementById('mobile-weapon-btn').style.display = 'flex'; }
+                    if(isMobile) { 
+                        document.getElementById('mobile-dpad').style.display = 'grid'; 
+                        document.getElementById('mobile-actions').style.display = 'block'; 
+                        document.getElementById('mobile-hud').style.display = 'flex'; 
+                    }
                     window.resumeGame();
                 }
             }, 40);
@@ -202,9 +287,8 @@
         };
 
         document.addEventListener('pointerlockchange', () => {
-            if (document.pointerLockElement === null && isPlaying) {
-                if(document.getElementById('inventory-wheel').style.display !== 'grid' && 
-                   document.getElementById('settings-menu').style.display !== 'flex') {
+            if (!isMobile && document.pointerLockElement === null && isPlaying) {
+                if(document.getElementById('inventory-wheel').style.display !== 'grid' && document.getElementById('settings-menu').style.display !== 'flex') {
                     window.pauseGame();
                 }
             }
@@ -214,8 +298,7 @@
         
         window.closeSettings = () => { 
             sensitivity = document.getElementById('sens-slider').value * 0.00015;
-            const quality = document.getElementById('graphics-select').value;
-            applyGraphicsSettings(quality);
+            applyGraphicsSettings(document.getElementById('graphics-select').value);
             document.getElementById('settings-menu').style.display='none'; 
             if(settingsContext === 'menu') document.getElementById('menu').style.display = 'flex'; 
             else document.getElementById('pause-overlay').style.display = 'flex'; 
@@ -223,63 +306,32 @@
 
         function applyGraphicsSettings(preset) {
             if (preset === 'potato') {
-                camera.far = 180;
-                scene.fog = null;
-                renderer.shadowMap.enabled = false;
-                renderer.toneMapping = THREE.NoToneMapping;
-                sun.intensity = 0.9;
-                grass.material.map = null; // Remove grass textures for basic performance
-                renderer.setPixelRatio(0.35); 
+                camera.far = 180; scene.fog = null; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
+                sun.intensity = 0.8; hemiLight.intensity = 0.5; grass.material.map = null; usePostProcessing = false; renderer.setPixelRatio(0.35); 
             } else if (preset === 'fast') {
-                camera.far = 400;
-                scene.fog = null;
-                renderer.shadowMap.enabled = false;
-                renderer.toneMapping = THREE.NoToneMapping;
-                sun.intensity = 1.0;
-                grass.material.map = null;
-                renderer.setPixelRatio(0.6);
+                camera.far = 400; scene.fog = null; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
+                sun.intensity = 0.9; hemiLight.intensity = 0.6; grass.material.map = null; usePostProcessing = false; renderer.setPixelRatio(0.6);
             } else if (preset === 'normal') {
-                camera.far = 1500;
-                scene.fog = new THREE.FogExp2(0xb1d1e8, 0.0015);
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFShadowMap;
-                renderer.toneMapping = THREE.NoToneMapping;
-                sun.intensity = 1.3;
-                grass.material.map = groundTex;
-                sun.shadow.mapSize.width = 1024;
-                sun.shadow.mapSize.height = 1024;
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                camera.far = 1500; scene.fog = new THREE.FogExp2(0xa3becc, 0.0015); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+                renderer.toneMapping = THREE.NoToneMapping; sun.intensity = 1.1; hemiLight.intensity = 0.8; grass.material.map = groundTex;
+                usePostProcessing = true; bloomPass.strength = 0.3; bloomPass.radius = 0.2; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             } else if (preset === 'high') {
-                camera.far = 2200;
-                scene.fog = new THREE.FogExp2(0xb1d1e8, 0.0012);
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                renderer.toneMapping = THREE.LinearToneMapping;
-                sun.intensity = 1.6;
-                grass.material.map = groundTex;
-                sun.shadow.mapSize.width = 2048;
-                sun.shadow.mapSize.height = 2048;
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                camera.far = 2200; scene.fog = new THREE.FogExp2(0xa3becc, 0.0012); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                renderer.toneMapping = THREE.LinearToneMapping; renderer.toneMappingExposure = 1.0; sun.intensity = 1.3; hemiLight.intensity = 0.9; grass.material.map = groundTex;
+                usePostProcessing = true; bloomPass.strength = 0.5; bloomPass.radius = 0.4; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             } else if (preset === 'ultra') {
-                camera.far = 4500;
-                scene.fog = new THREE.FogExp2(0xc4deff, 0.0006); // Smooth atmospheric horizon scattering
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                renderer.toneMapping = THREE.ACESFilmicToneMapping; // Real-world cinematic shading environment
-                renderer.toneMappingExposure = 1.15;
-                sun.intensity = 2.4; 
-                grass.material.map = groundTex;
-                sun.shadow.mapSize.width = 4096; // Massive ultra high-resolution crisp shadowing
-                sun.shadow.mapSize.height = 4096;
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+                camera.far = 4500; scene.fog = new THREE.FogExp2(0xb8cfdc, 0.0006); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.85; sun.intensity = 1.65; hemiLight.intensity = 0.75; grass.material.map = groundTex;
+                usePostProcessing = true; bloomPass.threshold = 0.45; bloomPass.strength = 0.85; bloomPass.radius = 0.6;
+                sun.shadow.mapSize.width = 4096; sun.shadow.mapSize.height = 4096; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
             }
             camera.updateProjectionMatrix();
         }
 
-        // --- SCENE SETUP ---
+        // --- THREE.JS ENGINE SETUP ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xb1d1e8);
-        scene.fog = new THREE.FogExp2(0xb1d1e8, 0.0015);
+        scene.background = new THREE.Color(0xa3becc);
+        scene.fog = new THREE.FogExp2(0xa3becc, 0.0015);
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 4500);
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -288,117 +340,122 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // Highly advanced realistic sky atmosphere lighting
-        const hemiLight = new THREE.HemisphereLight(0xdbeeff, 0x556644, 1.1);
-        hemiLight.position.set(0, 300, 0);
-        scene.add(hemiLight);
+        // --- SHADER INJECTION COMPOSER ---
+        composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
 
-        const sun = new THREE.DirectionalLight(0xfff5e3, 1.4); 
-        sun.position.set(120, 280, 70); 
-        sun.castShadow = true;
-        sun.shadow.camera.top = 450;
-        sun.shadow.camera.bottom = -450;
-        sun.shadow.camera.left = -450;
-        sun.shadow.camera.right = 450;
-        sun.shadow.camera.near = 0.1;
-        sun.shadow.camera.far = 1200;
-        sun.shadow.mapSize.width = 2048;
-        sun.shadow.mapSize.height = 2048;
-        sun.shadow.bias = -0.0005; // Eliminates visual blocky shadow artifacts
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.3);
+        composer.addPass(bloomPass);
+
+        const MotionBlurShader = {
+            uniforms: { "tDiffuse": { value: null }, "blurAmount": { value: 0.0 } },
+            vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+            fragmentShader: `uniform sampler2D tDiffuse; uniform float blurAmount; varying vec2 vUv; void main() { vec4 color = vec4(0.0); float totalWeight = 0.0; for (float i = -4.0; i <= 4.0; i++) { float weight = 1.0 - (abs(i) / 5.0); color += texture2D(tDiffuse, vUv + vec2(i * blurAmount * 0.004, 0.0)) * weight; totalWeight += weight; } gl_FragColor = color / totalWeight; }`
+        };
+        motionBlurPass = new ShaderPass(MotionBlurShader);
+        composer.addPass(motionBlurPass);
+
+        const hemiLight = new THREE.HemisphereLight(0xcce2ff, 0x445533, 0.8); hemiLight.position.set(0, 300, 0); scene.add(hemiLight);
+        const sun = new THREE.DirectionalLight(0xffeed1, 1.1); sun.position.set(120, 280, 70); sun.castShadow = true;
+        sun.shadow.camera.top = 450; sun.shadow.camera.bottom = -450; sun.shadow.camera.left = -450; sun.shadow.camera.right = 450;
+        sun.shadow.camera.near = 0.1; sun.shadow.camera.far = 1200; sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048; sun.shadow.bias = -0.0004;
         scene.add(sun);
 
-        // GROUND / ENVIRONMENT MAP DESIGN
-        const grassMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.95, metalness: 0.05 });
-        const grass = new THREE.Mesh(new THREE.PlaneGeometry(4500, 4500), grassMat); 
-        grass.rotation.x = -Math.PI / 2; 
-        grass.receiveShadow = true;
-        scene.add(grass);
+        const grassMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.95, metalness: 0.02 });
+        const grass = new THREE.Mesh(new THREE.PlaneGeometry(4500, 4500), grassMat); grass.rotation.x = -Math.PI / 2; grass.receiveShadow = true; scene.add(grass);
 
-        const roadMat = new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.65, metalness: 0.25 });
-        const road = new THREE.Mesh(new THREE.PlaneGeometry(40, 4500), roadMat); 
-        road.rotation.x = -Math.PI / 2; road.position.y = 0.06; 
-        road.receiveShadow = true;
-        scene.add(road);
+        const roadMat = new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.7, metalness: 0.15 });
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(40, 4500), roadMat); road.rotation.x = -Math.PI / 2; road.position.y = 0.06; road.receiveShadow = true; scene.add(road);
 
-        // PHYSICALLY SHADED TEXTURED BUILDINGS
         for(let i=0; i<50; i++) {
             const h = 60 + Math.random() * 120;
-            const bMat = new THREE.MeshStandardMaterial({ 
-                map: buildingTex.clone(),
-                color: new THREE.Color().setHSL(Math.random() * 0.08, 0.15, 0.55 + Math.random() * 0.35),
-                roughness: 0.2, // Gives modern windows sleek glass reflection properties
-                metalness: 0.4  
-            }); 
+            const bMat = new THREE.MeshStandardMaterial({ map: buildingTex.clone(), color: new THREE.Color().setHSL(Math.random() * 0.08, 0.12, 0.5 + Math.random() * 0.3), roughness: 0.25, metalness: 0.35 }); 
             bMat.map.repeat.set(1, h/10); 
-            const b = new THREE.Mesh(new THREE.BoxGeometry(26, h, 26), bMat);
-            const side = Math.random() > 0.5 ? 1 : -1; 
-            b.position.set(side * (40 + Math.random() * 20), h/2, (Math.random()-0.5) * 1500); 
-            b.castShadow = true;
-            b.receiveShadow = true;
-            scene.add(b);
+            const b = new THREE.Mesh(new THREE.BoxGeometry(26, h, 26), bMat); const side = Math.random() > 0.5 ? 1 : -1; b.position.set(side * (40 + Math.random() * 20), h/2, (Math.random()-0.5) * 1500); b.castShadow = true; b.receiveShadow = true; scene.add(b);
         }
 
-        for(let i=0; i<25; i++) {
-            const n = createDetailedNPC(); n.position.set((Math.random()-0.5)*100, 0, (Math.random()-0.5)*600); scene.add(n); npcs.push(n);
-        }
+        for(let i=0; i<25; i++) { const n = createDetailedNPC(); n.position.set((Math.random()-0.5)*100, 0, (Math.random()-0.5)*600); scene.add(n); npcs.push(n); }
 
-        // --- REALISTIC PHYSICALLY BALANCED KVATIA ---
-        const kvatia = new THREE.Group();
-        const kvatiaVisuals = new THREE.Group(); 
-        
-        // High polish premium physical surface tracking
-        const kvatiaMat = new THREE.MeshStandardMaterial({color: 0xfcc72d, roughness: 0.15, metalness: 0.18});
-        const beakMat = new THREE.MeshStandardMaterial({color: 0xff4a00, roughness: 0.35, metalness: 0.1});
-        const eyeMat = new THREE.MeshStandardMaterial({color: 0x030303, roughness: 0.02, metalness: 0.95});
+        // --- CHARACTER MODEL (KVATIA) ---
+        const kvatia = new THREE.Group(); const kvatiaVisuals = new THREE.Group(); 
+        const kvatiaMat = new THREE.MeshStandardMaterial({color: 0xfcc72d, roughness: 0.2, metalness: 0.12});
+        const beakMat = new THREE.MeshStandardMaterial({color: 0xff4a00, roughness: 0.4, metalness: 0.05});
+        const eyeMat = new THREE.MeshStandardMaterial({color: 0x030303, roughness: 0.05, metalness: 0.9});
 
-        const kvatiaBody = new THREE.Mesh(new THREE.SphereGeometry(1.4, 32, 32), kvatiaMat); 
-        kvatiaBody.scale.set(1, 0.9, 1.25); kvatiaBody.position.y = 1.2; 
-        kvatiaBody.castShadow = true; kvatiaBody.receiveShadow = true;
-        kvatiaVisuals.add(kvatiaBody);
-        
-        const kvatiaHead = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), kvatiaMat); 
-        kvatiaHead.position.set(0, 2.2, 0.6); 
-        kvatiaHead.castShadow = true;
-        kvatiaVisuals.add(kvatiaHead);
-        
-        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.8, 4), beakMat); 
-        beak.position.set(0, 2.15, 1.5); 
-        beak.rotation.x = Math.PI / 2;
-        beak.rotation.y = Math.PI / 4;
-        kvatiaVisuals.add(beak);
+        const kvatiaBody = new THREE.Mesh(new THREE.SphereGeometry(1.4, 32, 32), kvatiaMat); kvatiaBody.scale.set(1, 0.9, 1.25); kvatiaBody.position.y = 1.2; kvatiaBody.castShadow = true; kvatiaBody.receiveShadow = true; kvatiaVisuals.add(kvatiaBody);
+        const kvatiaHead = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), kvatiaMat); kvatiaHead.position.set(0, 2.2, 0.6); kvatiaHead.castShadow = true; kvatiaVisuals.add(kvatiaHead);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.8, 4), beakMat); beak.position.set(0, 2.15, 1.5); beak.rotation.x = Math.PI / 2; beak.rotation.y = Math.PI / 4; kvatiaVisuals.add(beak);
+        const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), eyeMat); leftEye.position.set(-0.45, 2.4, 1.1); const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), eyeMat); rightEye.position.set(0.45, 2.4, 1.1); kvatiaVisuals.add(leftEye, rightEye);
 
-        const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), eyeMat);
-        leftEye.position.set(-0.45, 2.4, 1.1)
-        const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), eyeMat);
-        rightEye.position.set(0.45, 2.4, 1.1);
-        kvatiaVisuals.add(leftEye, rightEye);
+        // --- UPGRADED WEAPON ASSEMBLY ---
+        const gunModel = new THREE.Group(); let gunSlide;
+        const polishedSteelMat = new THREE.MeshStandardMaterial({color: 0xcccccc, metalness: 0.95, roughness: 0.08});
+        const polymerGripMat = new THREE.MeshStandardMaterial({color: 0x1c1c1c, metalness: 0.2, roughness: 0.65});
+        const darkSteelMat = new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.9, roughness: 0.2});
 
-        const gunModel = new THREE.Group();
-        const metalMat = new THREE.MeshStandardMaterial({color: 0x777777, metalness: 0.9, roughness: 0.15});
-        const gripMat = new THREE.MeshStandardMaterial({color: 0x1a1a1a, metalness: 0.1, roughness: 0.75});
-        const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.4, 1.2), metalMat); barrel.position.z = 0.5; gunModel.add(barrel);
-        const grip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.3), gripMat); grip.position.set(0, -0.4, 0.1); grip.rotation.x = 0.2; gunModel.add(grip);
-        const triggerGuard = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.3), gripMat); triggerGuard.position.set(0, -0.2, 0.4); gunModel.add(triggerGuard);
+        const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.35, 1.15), polymerGripMat); receiver.position.set(0, -0.1, 0.3); gunModel.add(receiver);
+        const grip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.85, 0.32), polymerGripMat); grip.position.set(0, -0.45, 0.1); grip.rotation.x = 0.25; gunModel.add(grip);
+        gunSlide = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.32, 1.25), darkSteelMat); gunSlide.position.set(0, 0.1, 0.1); gunSlide.castShadow = true; gunModel.add(gunSlide);
+        const innerBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.3), polishedSteelMat); innerBarrel.rotation.x = Math.PI / 2; innerBarrel.position.set(0, 0.1, 0.15); gunModel.add(innerBarrel);
+        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.22, 0.35), polymerGripMat); guard.position.set(0, -0.25, 0.45); gunModel.add(guard);
 
-        gunModel.position.set(1.2, 1.4, 0.8);
-        gunModel.visible = false;
-        kvatiaVisuals.add(gunModel);
-        kvatiaVisuals.rotation.y = Math.PI; 
-        kvatia.add(kvatiaVisuals);
-        scene.add(kvatia);
+        gunModel.position.set(1.2, 1.4, 0.8); gunModel.visible = false;
+        kvatiaVisuals.add(gunModel); kvatiaVisuals.rotation.y = Math.PI; kvatia.add(kvatiaVisuals); scene.add(kvatia);
 
-        const keys = { w:false, a:false, s:false, d:false };
+        // --- RIGID FIXED MOBILE LOOK & MOVEMENT ---
         let yaw = 0, pitch = 0;
-        let touchStartX = 0, touchStartY = 0, mobileMoveX = 0, mobileMoveY = 0;
+        let lastTouchX = 0, lastTouchY = 0;
 
-        window.addEventListener('touchstart', (e) => { if (!isPlaying) return; const touch = e.touches[0]; if (touch.clientX < window.innerWidth / 2) { touchStartX = touch.clientX; touchStartY = touch.clientY; } });
+        // Clean Touch Engine for Camera Look-Around (Requires Right Side Interaction)
+        window.addEventListener('touchstart', (e) => {
+            if (!isPlaying) return;
+            const touch = e.touches[0];
+            // Only update rotation parameters if dragging on the right half of the viewport
+            if (touch.clientX > window.innerWidth / 2) {
+                lastTouchX = touch.clientX;
+                lastTouchY = touch.clientY;
+            }
+        }, { passive: true });
+
         window.addEventListener('touchmove', (e) => {
-            if (!isPlaying) return; const touch = e.touches[0];
-            if (touchStartX > 0) { mobileMoveX = (touch.clientX - touchStartX) / 50; mobileMoveY = (touchStartY - touch.clientY) / 50; mobileMoveX = Math.max(-1, Math.min(1, mobileMoveX)); mobileMoveY = Math.max(-1, Math.min(1, mobileMoveY)); }
-            else { yaw -= (touch.clientX - (window.innerWidth/2)) * 0.0001; pitch += (touch.clientY - (window.innerHeight/2)) * 0.0001; }
-        });
-        window.addEventListener('touchend', () => { touchStartX = 0; touchStartY = 0; mobileMoveX = 0; mobileMoveY = 0; });
+            if (!isPlaying) return;
+            // Handle look-around using any touch active on the right side of screen
+            for(let i=0; i<e.touches.length; i++) {
+                const touch = e.touches[i];
+                if(touch.clientX > window.innerWidth / 2) {
+                    if (lastTouchX > 0) {
+                        const movementX = touch.clientX - lastTouchX;
+                        const movementY = touch.clientY - lastTouchY;
+                        yaw -= movementX * 0.006; 
+                        pitch = Math.max(-0.8, Math.min(1.2, pitch + movementY * 0.006));
+                    }
+                    lastTouchX = touch.clientX;
+                    lastTouchY = touch.clientY;
+                    break;
+                }
+            }
+        }, { passive: true });
 
+        window.addEventListener('touchend', (e) => {
+            // Reset right side tracking coordinate matrices
+            let rightSideActive = false;
+            for(let i=0; i<e.touches.length; i++) {
+                if(e.touches[i].clientX > window.innerWidth / 2) rightSideActive = true;
+            }
+            if(!rightSideActive) { lastTouchX = 0; lastTouchY = 0; }
+        });
+
+        // Safe D-Pad Pointer Button Listeners mapping to Movement Logic
+        const bindDpad = (id, key) => {
+            const el = document.getElementById(id);
+            el.addEventListener('pointerdown', (e) => { e.preventDefault(); keys[key] = true; });
+            el.addEventListener('pointerup', (e) => { e.preventDefault(); keys[key] = false; });
+            el.addEventListener('pointerleave', (e) => { e.preventDefault(); keys[key] = false; });
+        };
+        bindDpad('dpad-w', 'w'); bindDpad('dpad-a', 'a'); bindDpad('dpad-s', 's'); bindDpad('dpad-d', 'd');
+
+        // --- GAME STEP LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             if (isPlaying) {
@@ -407,21 +464,29 @@
                 if(keys.s) { kvatia.position.x += dx * speed; kvatia.position.z += dz * speed; }
                 if(keys.a) { kvatia.position.x -= dz * speed; kvatia.position.z += dx * speed; }
                 if(keys.d) { kvatia.position.x += dz * speed; kvatia.position.z -= dx * speed; }
-                if (mobileMoveY !== 0 || mobileMoveX !== 0) { kvatia.position.x -= (dx * mobileMoveY + dz * mobileMoveX) * speed; kvatia.position.z -= (dz * mobileMoveY - dx * mobileMoveX) * speed; }
                 npcs.forEach(n => { n.lookAt(kvatia.position.x, 0, kvatia.position.z); });
             }
+
+            const yawDelta = Math.abs(yaw - lastYaw); lastYaw = yaw;
+            if (isPlaying && document.getElementById('graphics-select').value === 'ultra') {
+                currentMotionBlurValue = THREE.MathUtils.lerp(currentMotionBlurValue, yawDelta * 8.0, 0.15);
+                motionBlurPass.uniforms["blurAmount"].value = Math.min(1.2, currentMotionBlurValue);
+            } else { motionBlurPass.uniforms["blurAmount"].value = 0; }
+
             kvatia.rotation.y = yaw;
             const camDist = 22; camera.position.set(kvatia.position.x + Math.sin(yaw) * Math.cos(pitch) * camDist, kvatia.position.y + 12 + Math.sin(pitch) * camDist, kvatia.position.z + Math.cos(yaw) * Math.cos(pitch) * camDist);
             camera.lookAt(kvatia.position.x, kvatia.position.y + 2.5, kvatia.position.z);
-            renderer.render(scene, camera);
+
+            if (usePostProcessing) { composer.render(); } else { renderer.render(scene, camera); }
         }
         animate();
 
+        // Keyboard bindings for Desktop fallback testing
         document.addEventListener('keydown', (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; if(e.key.toLowerCase() === 'q') toggleInv(true); });
         document.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; if(e.key.toLowerCase() === 'q') toggleInv(false); });
-        document.addEventListener('mousemove', (e) => { if(document.pointerLockElement) { yaw -= e.movementX * sensitivity; pitch = Math.max(-0.8, Math.min(1.2, pitch + e.movementY * sensitivity)); } });
+        document.addEventListener('mousemove', (e) => { if(!isMobile && document.pointerLockElement) { yaw -= e.movementX * sensitivity; pitch = Math.max(-0.8, Math.min(1.2, pitch + e.movementY * sensitivity)); } });
         document.addEventListener('mousedown', () => { if(isPlaying && !isMobile) performAttack(); });
-        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); });
     </script>
 </body>
 </html>
