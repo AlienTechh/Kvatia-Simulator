@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kvatia Simulator Ultra Mobile Pro</title>
+    <title>Kvatia Simulator Ultra - Driving & Traffic Edition</title>
     <style>
         body { 
             margin: 0; 
@@ -20,7 +20,6 @@
         #menu { display: flex; background: url('https://cdn.oreateai.com/gpt-image/1777394306_113542062.png') no-repeat center center; background-size: cover; }
         #menu h1 { font-size: 55px; color: #f6ca2d; text-shadow: 0 0 20px rgba(0,0,0,1); }
         
-        /* Universal Button Styling with Tap Highlights Disabled */
         .btn { 
             background: #499149; 
             color: white; 
@@ -37,22 +36,22 @@
         }
         .btn:active { transform: scale(0.95); }
 
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; background: rgba(255,255,255,0.9); border: 1px solid #000; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; pointer-events: none; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background: rgba(255,55,55,0.9); border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; pointer-events: none; }
 
         #inventory-wheel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border-radius: 50%; background: rgba(0,0,0,0.8); border: 4px solid #f6ca2d; display: none; grid-template-columns: 1fr 1fr; align-items: center; justify-items: center; z-index: 10000; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
         .inv-slot { width: 100px; height: 100px; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: white; cursor: pointer; border-radius: 10px; font-weight: bold; -webkit-tap-highlight-color: transparent; }
 
         #gui { position: absolute; top: 20px; left: 20px; color: #f6ca2d; text-shadow: 3px 3px #000; z-index: 10; pointer-events: none; display: none; text-align: left; }
         
-        /* Fixed Mobile HUD Elements */
+        #interaction-prompt { position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%); color: #fff; background: rgba(0,0,0,0.75); padding: 10px 20px; border: 2px solid #f6ca2d; border-radius: 8px; font-size: 18px; font-weight: bold; display: none; z-index: 105; pointer-events: none; }
+
         #mobile-hud { position: absolute; top: 20px; right: 20px; display: none; pointer-events: auto; z-index: 102; gap: 10px; }
         .hud-btn { width: 60px; height: 60px; background: #222; border: 2px solid #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        /* Action Panel Right Side */
-        #mobile-actions { position: absolute; bottom: 40px; right: 40px; display: none; pointer-events: auto; z-index: 101; }
+        #mobile-actions { position: absolute; bottom: 40px; right: 40px; display: none; pointer-events: auto; z-index: 101; display: flex; flex-direction: column; gap: 12px; }
         #mobile-attack-btn { width: 95px; height: 95px; background: #a32a2a; border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 38px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        #mobile-car-btn { width: 75px; height: 75px; background: #2d66f6; border: 3px solid #fff; border-radius: 50%; display: none; align-items: center; justify-content: center; color: white; font-size: 30px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-        /* New Fixed D-PAD Movement Grid Left Side */
         #mobile-dpad { position: absolute; bottom: 40px; left: 40px; display: none; grid-template-areas: ". up ." "left . right" ". down ."; gap: 8px; pointer-events: auto; z-index: 101; }
         .dpad-btn { width: 65px; height: 65px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.8); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .dpad-btn:active { background: rgba(246, 202, 45, 0.6); }
@@ -68,6 +67,7 @@
 </head>
 <body>
     <div id="crosshair"></div>
+    <div id="interaction-prompt">PRESS F TO ENTER VEHICLE</div>
     <div id="ui-layer">
         <div id="mobile-hud">
             <div class="hud-btn" onclick="toggleInv(true)">🎒</div>
@@ -82,6 +82,7 @@
         </div>
 
         <div id="mobile-actions">
+            <div id="mobile-car-btn" onclick="triggerVehicleInteraction()">🚗</div>
             <div id="mobile-attack-btn" onclick="performAttack()">👊</div>
         </div>
 
@@ -131,8 +132,9 @@
     </div>
 
     <div id="gui">
-        <h1 style="margin:0; font-size: 45px;">$1,000,000</h1>
-        <div id="active-weapon" style="font-size: 22px; color: white; font-weight: bold;">WEAPON: FISTS</div>
+        <h1 style="margin:0; font-size: 40px;">$1,000,000</h1>
+        <div id="eliminated-counter" style="font-size: 18px; color: #ff3737; font-weight: bold; margin-bottom: 5px;">ELIMINATED: 0</div>
+        <div id="active-weapon" style="font-size: 18px; color: white; font-weight: bold;">WEAPON: FISTS</div>
     </div>
 
     <script type="importmap">
@@ -150,31 +152,34 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-        let isPlaying = false, sensitivity = 0.002, currentWeapon = 'fists', settingsContext = 'menu';
+        let isPlaying = false, sensitivity = 0.003, currentWeapon = 'fists', settingsContext = 'menu';
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
         const npcs = [];
+        const colliders = []; 
+        const vehicles = [];
+        let totalEliminations = 0;
         const texLoader = new THREE.TextureLoader();
         const proxy = "https://images.weserv.nl/?url=";
 
         let composer, bloomPass, motionBlurPass;
         let usePostProcessing = true;
         let lastYaw = 0, currentMotionBlurValue = 0;
-
-        // Unified key/movement tracking map for both desktop and D-pad clicks
         const keys = { w:false, a:false, s:false, d:false };
+
+        // Vehicle Interaction Parameters
+        let drivingVehicle = null;
+        let vehicleProximityTarget = null;
+        let doorAnimationActive = false;
 
         // --- ASSET LOADING ---
         const roadTex = texLoader.load(proxy + 'i.pinimg.com/564x/28/9f/08/289f08b9073de76ec7b2d55dbf34e5d8.jpg');
-        roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
-        roadTex.repeat.set(1, 120); roadTex.rotation = Math.PI / 2; roadTex.anisotropy = 16;
-
+        roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping; roadTex.repeat.set(1, 120); roadTex.rotation = Math.PI / 2; roadTex.anisotropy = 16;
         const buildingTex = texLoader.load(proxy + 'img.freepik.com/premium-photo/window-facade-office-building_63253-6934.jpg');
         buildingTex.wrapS = buildingTex.wrapT = THREE.RepeatWrapping; buildingTex.anisotropy = 16;
-
         const groundTex = texLoader.load(proxy + 'img.freepik.com/free-photo/green-grass-texture_1249-15.jpg');
         groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping; groundTex.repeat.set(40, 40); groundTex.anisotropy = 8;
 
-        // --- AUDIO SYNTH ---
+        // --- AUDIO SYNTHESIZER ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const bufferSize = audioCtx.sampleRate * 0.4;
         const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -189,32 +194,26 @@
                 const noiseFilter = audioCtx.createBiquadFilter(); noiseFilter.type = 'bandpass'; noiseFilter.frequency.setValueAtTime(1000, now);
                 const noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.8, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
                 noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
-
                 const bassOsc = audioCtx.createOscillator(); const bassGain = audioCtx.createGain();
                 bassOsc.type = 'sine'; bassOsc.frequency.setValueAtTime(280, now); bassOsc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
                 bassGain.gain.setValueAtTime(0.9, now); bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                 bassOsc.connect(bassGain); bassGain.connect(audioCtx.destination);
-
-                const clickOsc = audioCtx.createOscillator(); const clickGain = audioCtx.createGain();
-                clickOsc.type = 'triangle'; clickOsc.frequency.setValueAtTime(1600, now); clickGain.gain.setValueAtTime(0.12, now); clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-                clickOsc.connect(clickGain); clickGain.connect(audioCtx.destination);
-
-                noise.start(now); bassOsc.start(now); clickOsc.start(now);
-                noise.stop(now + 0.2); bassOsc.stop(now + 0.2); clickOsc.stop(now + 0.05);
+                noise.start(now); bassOsc.start(now); noise.stop(now + 0.2); bassOsc.stop(now + 0.2);
             } else {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine'; osc.frequency.setValueAtTime(120, now); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(); osc.stop(now + 0.1);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(140, now); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(); osc.stop(now + 0.08);
             }
         }
 
-        // --- NPC BUILDER ---
+        // --- MODEL BUILDERS ---
         function createDetailedNPC() {
             const group = new THREE.Group();
+            group.isDead = false; group.health = 6; group.velocity = new THREE.Vector3(); group.angularVelocity = 0;
             const skin = new THREE.MeshStandardMaterial({color: 0xffdbac, roughness: 0.5});
-            const clothes = new THREE.MeshStandardMaterial({color: Math.random() * 0xffffff, roughness: 0.6, metalness: 0.1});
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.8), clothes); torso.position.y = 2.1; torso.castShadow = true; torso.receiveShadow = true; group.add(torso);
+            const clothes = new THREE.MeshStandardMaterial({color: Math.random() * 0xffffff, roughness: 0.6});
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.8), clothes); torso.position.y = 2.1; torso.castShadow = true; group.add(torso);
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), skin); head.position.y = 3.35; head.castShadow = true; group.add(head);
             const armGeo = new THREE.BoxGeometry(0.35, 1.2, 0.35);
             const lArm = new THREE.Mesh(armGeo, skin); lArm.position.set(-0.85, 2.1, 0); lArm.castShadow = true; group.add(lArm);
@@ -222,11 +221,83 @@
             const legGeo = new THREE.BoxGeometry(0.45, 1.4, 0.45);
             const lLeg = new THREE.Mesh(legGeo, clothes); lLeg.position.set(-0.35, 0.7, 0); lLeg.castShadow = true; group.add(lLeg);
             const rLeg = new THREE.Mesh(legGeo, clothes); rLeg.position.set(0.35, 0.7, 0); rLeg.castShadow = true; group.add(rLeg);
+            group.userData = { torso, head, lArm, rArm, lLeg, rLeg, clothesMat: clothes, skinMat: skin };
             return group;
         }
 
-        // --- INTERFACE SYSTEMS ---
+        function createVehicle(posX, posZ) {
+            const vehicle = new THREE.Group();
+            vehicle.position.set(posX, 0.1, posZ);
+            
+            vehicle.userData = {
+                isAI: true,
+                speed: 0.5 + Math.random() * 0.4,
+                targetSpeed: 0.5 + Math.random() * 0.4,
+                steering: 0,
+                direction: Math.random() > 0.5 ? 1 : -1, // Longitudinal orientation flow direction
+                length: 9.0,
+                width: 4.5
+            };
+
+            const bodyMat = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.2, metalness: 0.5 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.05, metalness: 0.9, transparent: true, opacity: 0.7 });
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.1, metalness: 0.9 });
+
+            // Lower Body Frame
+            const base = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 8.5), bodyMat);
+            base.position.y = 0.9; base.castShadow = true; base.receiveShadow = true;
+            vehicle.add(base);
+
+            // Cabin Glass Upper Frame
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(3.8, 1.1, 4.5), glassMat);
+            cabin.position.set(0, 2.0, -0.4); cabin.castShadow = true;
+            vehicle.add(cabin);
+
+            // Roof Plate
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.1, 4.3), bodyMat);
+            roof.position.set(0, 2.55, -0.4); roof.castShadow = true;
+            vehicle.add(roof);
+
+            // Structural Rotational Pivot Door Assembly
+            const doorPivot = new THREE.Group();
+            doorPivot.position.set(-2.1, 0.9, 0.5); // Left Side Driver Door alignment
+            const doorPanel = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.1, 2.0), bodyMat);
+            doorPanel.position.set(0, 0, -1.0); doorPanel.castShadow = true;
+            doorPivot.add(doorPanel);
+            vehicle.add(doorPivot);
+            vehicle.userData.doorPivot = doorPivot;
+
+            // Simple Wheel Assembly
+            const wheelGeo = new THREE.CylinderGeometry(0.65, 0.65, 0.6, 24);
+            wheelGeo.rotateZ(Math.PI / 2);
+            const w1 = new THREE.Mesh(wheelGeo, wheelMat); w1.position.set(-2.1, 0.65, 2.6);
+            const w2 = new THREE.Mesh(wheelGeo, wheelMat); w2.position.set(2.1, 0.65, 2.6);
+            const w3 = new THREE.Mesh(wheelGeo, wheelMat); w3.position.set(-2.1, 0.65, -2.6);
+            const w4 = new THREE.Mesh(wheelGeo, wheelMat); w4.position.set(2.1, 0.65, -2.6);
+            vehicle.add(w1, w2, w3, w4);
+
+            // Embed Interior Driver NPC if flagged as active AI
+            const driverNPC = createDetailedNPC();
+            driverNPC.position.set(-0.9, -0.15, 0.4);
+            driverNPC.scale.set(0.85, 0.85, 0.85);
+            vehicle.add(driverNPC);
+            vehicle.userData.driverNPC = driverNPC;
+
+            scene.add(vehicle);
+            vehicles.push(vehicle);
+            return vehicle;
+        }
+
+        function flashNpcDamage(npc) {
+            const uD = npc.userData; const dmgMat = new THREE.MeshStandardMaterial({color: 0xff3333});
+            uD.torso.material = dmgMat; uD.head.material = dmgMat;
+            setTimeout(() => { if(!npc.isDead) { uD.torso.material = uD.clothesMat; uD.head.material = uD.skinMat; } }, 120);
+        }
+
+        // --- INTERFACE & INVENTORY CONTROLS ---
         window.toggleInv = (show) => {
+            if(drivingVehicle) return; // Lock weapon wheel swap sequences while inside vehicles
             document.getElementById('inventory-wheel').style.display = show ? 'grid' : 'none';
             if(!isMobile && show) document.exitPointerLock();
             if(!isMobile && !show && isPlaying) document.body.requestPointerLock();
@@ -241,19 +312,116 @@
         };
 
         window.performAttack = () => {
-            if(!isPlaying) return;
+            if(!isPlaying || drivingVehicle) return;
             playSfx(currentWeapon === 'gun' ? 'gun' : 'punch');
-            if (currentWeapon === 'gun' && gunSlide) {
-                gunSlide.position.z = -0.2;
-                setTimeout(() => gunSlide.position.z = 0.1, 70);
+            
+            if (currentWeapon === 'gun') {
+                if (gunSlide) { gunSlide.position.z = -0.2; setTimeout(() => gunSlide.position.z = 0.1, 70); }
+                if (muzzleFlash) { muzzleFlash.visible = true; setTimeout(() => muzzleFlash.visible = false, 50); }
+                const forwardDir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion).normalize();
+                let closestHitNpc = null; let closestDistance = Infinity;
+                npcs.forEach(npc => {
+                    if (npc.isDead) return;
+                    const distance = kvatia.position.distanceTo(npc.position); if (distance > 150) return;
+                    const toNpc = npc.position.clone().add(new THREE.Vector3(0, 2, 0)).sub(kvatia.position);
+                    const projection = toNpc.dot(forwardDir);
+                    if (projection > 0) {
+                        const closestPoint = forwardDir.clone().multiplyScalar(projection);
+                        const perpDist = toNpc.distanceTo(closestPoint);
+                        if (perpDist < 2.6 && distance < closestDistance) { closestDistance = distance; closestHitNpc = npc; }
+                    }
+                });
+                if (closestHitNpc) damageNPC(closestHitNpc, forwardDir, 2.4);
+            } else {
+                const punchDir = new THREE.Vector3(0,0,-1).applyQuaternion(kvatia.quaternion).normalize();
+                npcs.forEach(n => { if(!n.isDead && kvatia.position.distanceTo(n.position) < 11) damageNPC(n, punchDir, 1.8); });
             }
-            npcs.forEach(n => {
-                if(kvatia.position.distanceTo(n.position) < (currentWeapon === 'gun' ? 80 : 12)) {
-                    n.rotation.x = Math.PI/2; setTimeout(() => n.rotation.x = 0, 4000);
-                }
-            });
         };
 
+        function damageNPC(npc, directionVector, engineForce) {
+            if (npc.isDead) return; npc.health--;
+            if (npc.health <= 0) {
+                npc.isDead = true; totalEliminations++;
+                document.getElementById('eliminated-counter').innerText = `ELIMINATED: ${totalEliminations}`;
+                npc.velocity.copy(directionVector).multiplyScalar(engineForce).y = 0.9; npc.angularVelocity = (Math.random() - 0.5) * 0.4;
+                flashNpcDamage(npc);
+                setTimeout(() => {
+                    scene.remove(npc); const idx = npcs.indexOf(npc);
+                    if (idx > -1) {
+                        const r = createDetailedNPC(); r.position.set((Math.random()-0.5)*120, 0, kvatia.position.z + (Math.random()-0.5)*400 - 100);
+                        scene.add(r); npcs[idx] = r;
+                    }
+                }, 3500);
+            } else { flashNpcDamage(npc); npc.position.addScaledVector(directionVector, 1.2); }
+        }
+
+        // --- INTERACTIVE VEHICLE SYSTEM LOOP ---
+        window.triggerVehicleInteraction = () => {
+            if (doorAnimationActive) return;
+
+            if (drivingVehicle) {
+                // Exit Vehicle Interaction Flow
+                doorAnimationActive = true;
+                const car = drivingVehicle;
+                drivingVehicle = null;
+
+                // Animate door mechanics opening
+                let t = 0;
+                const exitInterval = setInterval(() => {
+                    t += 0.1;
+                    car.userData.doorPivot.rotation.y = Math.sin(t * Math.PI) * 1.2;
+                    if (t >= 0.5 && kvatia.parent === car) {
+                        // Extract Kvatia back to world scene root coords system
+                        scene.add(kvatia);
+                        kvatia.position.set(car.position.x - 4.5, 0, car.position.z);
+                        kvatia.rotation.set(0, car.rotation.y, 0);
+                        kvatia.scale.set(1, 1, 1);
+                        gunModel.visible = (currentWeapon === 'gun');
+                    }
+                    if (t >= 1.0) {
+                        clearInterval(exitInterval);
+                        car.userData.doorPivot.rotation.y = 0; // Seal door close
+                        doorAnimationActive = false;
+                        document.getElementById('interaction-prompt').style.display = 'none';
+                    }
+                }, 30);
+            } else if (vehicleProximityTarget) {
+                // Enter Vehicle Interaction Flow
+                doorAnimationActive = true;
+                const car = vehicleProximityTarget;
+                
+                // Evict AI Driver entity mechanics cleanly
+                if (car.userData.isAI && car.userData.driverNPC) {
+                    car.remove(car.userData.driverNPC);
+                    car.userData.isAI = false;
+                }
+
+                let t = 0;
+                const enterInterval = setInterval(() => {
+                    t += 0.1;
+                    car.userData.doorPivot.rotation.y = Math.sin(t * Math.PI) * 1.2;
+                    
+                    if (t >= 0.5 && kvatia.parent !== car) {
+                        // Attach Kvatia entity structurally inside cabin mesh nodes tree
+                        car.add(kvatia);
+                        kvatia.position.set(-0.9, 0.45, 0.4);
+                        kvatia.rotation.set(0, Math.PI, 0);
+                        kvatia.scale.set(0.75, 0.75, 0.75);
+                        gunModel.visible = false; // Stash visible weapon models inside driver seats
+                    }
+
+                    if (t >= 1.0) {
+                        clearInterval(enterInterval);
+                        car.userData.doorPivot.rotation.y = 0; // Seal door close
+                        drivingVehicle = car;
+                        doorAnimationActive = false;
+                        document.getElementById('interaction-prompt').innerText = "PRESS F TO EXIT VEHICLE";
+                    }
+                }, 30);
+            }
+        };
+
+        // Standard event mapper wrappers for cross-platform support
         window.startGame = () => {
             document.getElementById('menu').style.display = 'none';
             document.getElementById('loading').style.display = 'flex';
@@ -261,13 +429,11 @@
             const iv = setInterval(() => {
                 p += 4; document.getElementById('loader-fill').style.width = p+'%';
                 if(p >= 100) { 
-                    clearInterval(iv);
-                    document.getElementById('loading').style.display='none';
-                    document.getElementById('gui').style.display='block';
-                    document.getElementById('crosshair').style.display='block';
+                    clearInterval(iv); document.getElementById('loading').style.display='none';
+                    document.getElementById('gui').style.display='block'; document.getElementById('crosshair').style.display='block';
                     if(isMobile) { 
                         document.getElementById('mobile-dpad').style.display = 'grid'; 
-                        document.getElementById('mobile-actions').style.display = 'block'; 
+                        document.getElementById('mobile-actions').style.display = 'flex'; 
                         document.getElementById('mobile-hud').style.display = 'flex'; 
                     }
                     window.resumeGame();
@@ -275,178 +441,125 @@
             }, 40);
         };
 
-        window.resumeGame = () => { 
-            document.querySelectorAll('.overlay').forEach(e=>e.style.display='none'); 
-            isPlaying = true; 
-            if(!isMobile) document.body.requestPointerLock(); 
-        };
-
-        window.pauseGame = () => { 
-            isPlaying = false; 
-            document.getElementById('pause-overlay').style.display = 'flex'; 
-        };
+        window.resumeGame = () => { document.querySelectorAll('.overlay').forEach(e=>e.style.display='none'); isPlaying = true; if(!isMobile) document.body.requestPointerLock(); };
+        window.pauseGame = () => { isPlaying = false; document.getElementById('pause-overlay').style.display = 'flex'; };
 
         document.addEventListener('pointerlockchange', () => {
             if (!isMobile && document.pointerLockElement === null && isPlaying) {
-                if(document.getElementById('inventory-wheel').style.display !== 'grid' && document.getElementById('settings-menu').style.display !== 'flex') {
-                    window.pauseGame();
-                }
+                if(document.getElementById('inventory-wheel').style.display !== 'grid' && document.getElementById('settings-menu').style.display !== 'flex') { window.pauseGame(); }
             }
         });
 
         window.openSettings = (ctx) => { settingsContext = ctx; document.getElementById('menu').style.display = 'none'; document.getElementById('pause-overlay').style.display = 'none'; document.getElementById('settings-menu').style.display='flex'; };
-        
         window.closeSettings = () => { 
             sensitivity = document.getElementById('sens-slider').value * 0.00015;
             applyGraphicsSettings(document.getElementById('graphics-select').value);
             document.getElementById('settings-menu').style.display='none'; 
-            if(settingsContext === 'menu') document.getElementById('menu').style.display = 'flex'; 
-            else document.getElementById('pause-overlay').style.display = 'flex'; 
+            if(settingsContext === 'menu') document.getElementById('menu').style.display = 'flex'; else document.getElementById('pause-overlay').style.display = 'flex'; 
         };
 
         function applyGraphicsSettings(preset) {
             if (preset === 'potato') {
-                camera.far = 180; scene.fog = null; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
-                sun.intensity = 0.8; hemiLight.intensity = 0.5; grass.material.map = null; usePostProcessing = false; renderer.setPixelRatio(0.35); 
+                camera.far = 180; scene.fog = null; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping; usePostProcessing = false; renderer.setPixelRatio(0.35); 
             } else if (preset === 'fast') {
-                camera.far = 400; scene.fog = null; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping;
-                sun.intensity = 0.9; hemiLight.intensity = 0.6; grass.material.map = null; usePostProcessing = false; renderer.setPixelRatio(0.6);
+                camera.far = 400; scene.fog = null; renderer.shadowMap.enabled = false; renderer.toneMapping = THREE.NoToneMapping; usePostProcessing = false; renderer.setPixelRatio(0.6);
             } else if (preset === 'normal') {
-                camera.far = 1500; scene.fog = new THREE.FogExp2(0xa3becc, 0.0015); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
-                renderer.toneMapping = THREE.NoToneMapping; sun.intensity = 1.1; hemiLight.intensity = 0.8; grass.material.map = groundTex;
-                usePostProcessing = true; bloomPass.strength = 0.3; bloomPass.radius = 0.2; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                camera.far = 1500; scene.fog = new THREE.FogExp2(0xa3becc, 0.0015); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; usePostProcessing = true; bloomPass.strength = 0.3; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             } else if (preset === 'high') {
-                camera.far = 2200; scene.fog = new THREE.FogExp2(0xa3becc, 0.0012); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                renderer.toneMapping = THREE.LinearToneMapping; renderer.toneMappingExposure = 1.0; sun.intensity = 1.3; hemiLight.intensity = 0.9; grass.material.map = groundTex;
-                usePostProcessing = true; bloomPass.strength = 0.5; bloomPass.radius = 0.4; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                camera.far = 2200; scene.fog = new THREE.FogExp2(0xa3becc, 0.0012); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; usePostProcessing = true; bloomPass.strength = 0.5; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             } else if (preset === 'ultra') {
-                camera.far = 4500; scene.fog = new THREE.FogExp2(0xb8cfdc, 0.0006); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.85; sun.intensity = 1.65; hemiLight.intensity = 0.75; grass.material.map = groundTex;
-                usePostProcessing = true; bloomPass.threshold = 0.45; bloomPass.strength = 0.85; bloomPass.radius = 0.6;
-                sun.shadow.mapSize.width = 4096; sun.shadow.mapSize.height = 4096; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+                camera.far = 4500; scene.fog = new THREE.FogExp2(0xb8cfdc, 0.0006); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; usePostProcessing = true; bloomPass.strength = 0.85; renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
             }
             camera.updateProjectionMatrix();
         }
 
         // --- THREE.JS ENGINE SETUP ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xa3becc);
-        scene.fog = new THREE.FogExp2(0xa3becc, 0.0015);
-
+        const scene = new THREE.Scene(); scene.background = new THREE.Color(0xa3becc); scene.fog = new THREE.FogExp2(0xa3becc, 0.0015);
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 4500);
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setSize(window.innerWidth, window.innerHeight); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // --- SHADER INJECTION COMPOSER ---
         composer = new EffectComposer(renderer);
-        const renderPass = new RenderPass(scene, camera);
-        composer.addPass(renderPass);
-
-        bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.3);
-        composer.addPass(bloomPass);
-
+        const renderPass = new RenderPass(scene, camera); composer.addPass(renderPass);
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.4, 0.3); composer.addPass(bloomPass);
+        
         const MotionBlurShader = {
             uniforms: { "tDiffuse": { value: null }, "blurAmount": { value: 0.0 } },
             vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
             fragmentShader: `uniform sampler2D tDiffuse; uniform float blurAmount; varying vec2 vUv; void main() { vec4 color = vec4(0.0); float totalWeight = 0.0; for (float i = -4.0; i <= 4.0; i++) { float weight = 1.0 - (abs(i) / 5.0); color += texture2D(tDiffuse, vUv + vec2(i * blurAmount * 0.004, 0.0)) * weight; totalWeight += weight; } gl_FragColor = color / totalWeight; }`
         };
-        motionBlurPass = new ShaderPass(MotionBlurShader);
-        composer.addPass(motionBlurPass);
+        motionBlurPass = new ShaderPass(MotionBlurShader); composer.addPass(motionBlurPass);
 
-        const hemiLight = new THREE.HemisphereLight(0xcce2ff, 0x445533, 0.8); hemiLight.position.set(0, 300, 0); scene.add(hemiLight);
+        const hemiLight = new THREE.HemisphereLight(0xcce2ff, 0x445533, 0.8); scene.add(hemiLight);
         const sun = new THREE.DirectionalLight(0xffeed1, 1.1); sun.position.set(120, 280, 70); sun.castShadow = true;
         sun.shadow.camera.top = 450; sun.shadow.camera.bottom = -450; sun.shadow.camera.left = -450; sun.shadow.camera.right = 450;
-        sun.shadow.camera.near = 0.1; sun.shadow.camera.far = 1200; sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048; sun.shadow.bias = -0.0004;
-        scene.add(sun);
+        sun.shadow.camera.near = 0.1; sun.shadow.camera.far = 1200; sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048; scene.add(sun);
 
-        const grassMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.95, metalness: 0.02 });
+        const grassMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.95 });
         const grass = new THREE.Mesh(new THREE.PlaneGeometry(4500, 4500), grassMat); grass.rotation.x = -Math.PI / 2; grass.receiveShadow = true; scene.add(grass);
 
         const roadMat = new THREE.MeshStandardMaterial({ map: roadTex, roughness: 0.7, metalness: 0.15 });
         const road = new THREE.Mesh(new THREE.PlaneGeometry(40, 4500), roadMat); road.rotation.x = -Math.PI / 2; road.position.y = 0.06; road.receiveShadow = true; scene.add(road);
 
-        for(let i=0; i<50; i++) {
+        // Build City Environment Blocks
+        for(let i=0; i<45; i++) {
             const h = 60 + Math.random() * 120;
-            const bMat = new THREE.MeshStandardMaterial({ map: buildingTex.clone(), color: new THREE.Color().setHSL(Math.random() * 0.08, 0.12, 0.5 + Math.random() * 0.3), roughness: 0.25, metalness: 0.35 }); 
-            bMat.map.repeat.set(1, h/10); 
-            const b = new THREE.Mesh(new THREE.BoxGeometry(26, h, 26), bMat); const side = Math.random() > 0.5 ? 1 : -1; b.position.set(side * (40 + Math.random() * 20), h/2, (Math.random()-0.5) * 1500); b.castShadow = true; b.receiveShadow = true; scene.add(b);
+            const bMat = new THREE.MeshStandardMaterial({ map: buildingTex.clone(), color: new THREE.Color().setHSL(Math.random() * 0.08, 0.12, 0.5 + Math.random() * 0.3), roughness: 0.25 }); bMat.map.repeat.set(1, h/10); 
+            const b = new THREE.Mesh(new THREE.BoxGeometry(26, h, 26), bMat); const side = Math.random() > 0.5 ? 1 : -1; const posX = side * (40 + Math.random() * 20); const posZ = (Math.random()-0.5) * 1500;
+            b.position.set(posX, h/2, posZ); b.castShadow = true; b.receiveShadow = true; scene.add(b);
+            colliders.push(new THREE.Box3().setFromObject(b));
         }
 
-        for(let i=0; i<25; i++) { const n = createDetailedNPC(); n.position.set((Math.random()-0.5)*100, 0, (Math.random()-0.5)*600); scene.add(n); npcs.push(n); }
+        // Spawn Pedestrian Nodes
+        for(let i=0; i<25; i++) {
+            const n = createDetailedNPC(); n.position.set((Math.random()-0.5)*30 + 35, 0, (Math.random()-0.5)*700); scene.add(n); npcs.push(n);
+        }
+
+        // Initialize Dynamic Traffic Units
+        for(let i=0; i<8; i++) {
+            createVehicle((Math.random() > 0.5 ? 8 : -8), (Math.random() - 0.5) * 1200);
+        }
 
         // --- CHARACTER MODEL (KVATIA) ---
         const kvatia = new THREE.Group(); const kvatiaVisuals = new THREE.Group(); 
-        const kvatiaMat = new THREE.MeshStandardMaterial({color: 0xfcc72d, roughness: 0.2, metalness: 0.12});
-        const beakMat = new THREE.MeshStandardMaterial({color: 0xff4a00, roughness: 0.4, metalness: 0.05});
-        const eyeMat = new THREE.MeshStandardMaterial({color: 0x030303, roughness: 0.05, metalness: 0.9});
-
-        const kvatiaBody = new THREE.Mesh(new THREE.SphereGeometry(1.4, 32, 32), kvatiaMat); kvatiaBody.scale.set(1, 0.9, 1.25); kvatiaBody.position.y = 1.2; kvatiaBody.castShadow = true; kvatiaBody.receiveShadow = true; kvatiaVisuals.add(kvatiaBody);
+        const kvatiaMat = new THREE.MeshStandardMaterial({color: 0xfcc72d, roughness: 0.2});
+        const beakMat = new THREE.MeshStandardMaterial({color: 0xff4a00});
+        const eyeMat = new THREE.MeshStandardMaterial({color: 0x030303});
+        const kvatiaBody = new THREE.Mesh(new THREE.SphereGeometry(1.4, 32, 32), kvatiaMat); kvatiaBody.scale.set(1, 0.9, 1.25); kvatiaBody.position.y = 1.2; kvatiaBody.castShadow = true; kvatiaVisuals.add(kvatiaBody);
         const kvatiaHead = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), kvatiaMat); kvatiaHead.position.set(0, 2.2, 0.6); kvatiaHead.castShadow = true; kvatiaVisuals.add(kvatiaHead);
         const beak = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.8, 4), beakMat); beak.position.set(0, 2.15, 1.5); beak.rotation.x = Math.PI / 2; beak.rotation.y = Math.PI / 4; kvatiaVisuals.add(beak);
         const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), eyeMat); leftEye.position.set(-0.45, 2.4, 1.1); const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), eyeMat); rightEye.position.set(0.45, 2.4, 1.1); kvatiaVisuals.add(leftEye, rightEye);
 
-        // --- UPGRADED WEAPON ASSEMBLY ---
-        const gunModel = new THREE.Group(); let gunSlide;
-        const polishedSteelMat = new THREE.MeshStandardMaterial({color: 0xcccccc, metalness: 0.95, roughness: 0.08});
-        const polymerGripMat = new THREE.MeshStandardMaterial({color: 0x1c1c1c, metalness: 0.2, roughness: 0.65});
-        const darkSteelMat = new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.9, roughness: 0.2});
-
+        // --- WEAPON ASSEMBLY ---
+        const gunModel = new THREE.Group(); let gunSlide, muzzleFlash;
+        const polishedSteelMat = new THREE.MeshStandardMaterial({color: 0xcccccc, metalness: 0.95});
+        const polymerGripMat = new THREE.MeshStandardMaterial({color: 0x1c1c1c});
+        const darkSteelMat = new THREE.MeshStandardMaterial({color: 0x333333, metalness: 0.9});
         const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.35, 1.15), polymerGripMat); receiver.position.set(0, -0.1, 0.3); gunModel.add(receiver);
         const grip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.85, 0.32), polymerGripMat); grip.position.set(0, -0.45, 0.1); grip.rotation.x = 0.25; gunModel.add(grip);
         gunSlide = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.32, 1.25), darkSteelMat); gunSlide.position.set(0, 0.1, 0.1); gunSlide.castShadow = true; gunModel.add(gunSlide);
         const innerBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.3), polishedSteelMat); innerBarrel.rotation.x = Math.PI / 2; innerBarrel.position.set(0, 0.1, 0.15); gunModel.add(innerBarrel);
-        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.22, 0.35), polymerGripMat); guard.position.set(0, -0.25, 0.45); gunModel.add(guard);
-
+        const flashMat = new THREE.MeshBasicMaterial({ color: 0xfff0b3, transparent: true, opacity: 0.95 });
+        muzzleFlash = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), flashMat); muzzleFlash.position.set(0, 0.1, 1.0); muzzleFlash.visible = false; gunModel.add(muzzleFlash);
         gunModel.position.set(1.2, 1.4, 0.8); gunModel.visible = false;
         kvatiaVisuals.add(gunModel); kvatiaVisuals.rotation.y = Math.PI; kvatia.add(kvatiaVisuals); scene.add(kvatia);
 
-        // --- RIGID FIXED MOBILE LOOK & MOVEMENT ---
-        let yaw = 0, pitch = 0;
-        let lastTouchX = 0, lastTouchY = 0;
-
-        // Clean Touch Engine for Camera Look-Around (Requires Right Side Interaction)
-        window.addEventListener('touchstart', (e) => {
-            if (!isPlaying) return;
-            const touch = e.touches[0];
-            // Only update rotation parameters if dragging on the right half of the viewport
-            if (touch.clientX > window.innerWidth / 2) {
-                lastTouchX = touch.clientX;
-                lastTouchY = touch.clientY;
-            }
-        }, { passive: true });
-
+        // --- CAMERA LOOK CONTROLS ---
+        let yaw = 0, pitch = 0; let lastTouchX = 0, lastTouchY = 0;
+        window.addEventListener('touchstart', (e) => { if (!isPlaying) return; const t = e.touches[0]; if (t.clientX > window.innerWidth / 2) { lastTouchX = t.clientX; lastTouchY = t.clientY; } }, { passive: true });
         window.addEventListener('touchmove', (e) => {
             if (!isPlaying) return;
-            // Handle look-around using any touch active on the right side of screen
             for(let i=0; i<e.touches.length; i++) {
-                const touch = e.touches[i];
-                if(touch.clientX > window.innerWidth / 2) {
-                    if (lastTouchX > 0) {
-                        const movementX = touch.clientX - lastTouchX;
-                        const movementY = touch.clientY - lastTouchY;
-                        yaw -= movementX * 0.006; 
-                        pitch = Math.max(-0.8, Math.min(1.2, pitch + movementY * 0.006));
-                    }
-                    lastTouchX = touch.clientX;
-                    lastTouchY = touch.clientY;
-                    break;
+                const t = e.touches[i];
+                if(t.clientX > window.innerWidth / 2) {
+                    if (lastTouchX > 0) { yaw -= (t.clientX - lastTouchX) * 0.005; pitch = Math.max(-0.8, Math.min(1.2, pitch + (t.clientY - lastTouchY) * 0.005)); }
+                    lastTouchX = t.clientX; lastTouchY = t.clientY; break;
                 }
             }
         }, { passive: true });
+        window.addEventListener('touchend', (e) => { let r = false; for(let i=0; i<e.touches.length; i++) { if(e.touches[i].clientX > window.innerWidth / 2) r = true; } if(!r) { lastTouchX = 0; lastTouchY = 0; } });
 
-        window.addEventListener('touchend', (e) => {
-            // Reset right side tracking coordinate matrices
-            let rightSideActive = false;
-            for(let i=0; i<e.touches.length; i++) {
-                if(e.touches[i].clientX > window.innerWidth / 2) rightSideActive = true;
-            }
-            if(!rightSideActive) { lastTouchX = 0; lastTouchY = 0; }
-        });
-
-        // Safe D-Pad Pointer Button Listeners mapping to Movement Logic
         const bindDpad = (id, key) => {
             const el = document.getElementById(id);
             el.addEventListener('pointerdown', (e) => { e.preventDefault(); keys[key] = true; });
@@ -455,35 +568,159 @@
         };
         bindDpad('dpad-w', 'w'); bindDpad('dpad-a', 'a'); bindDpad('dpad-s', 's'); bindDpad('dpad-d', 'd');
 
-        // --- GAME STEP LOOP ---
+        function checkCollisions(targetPos) {
+            if (Math.abs(targetPos.x) > 2200 || Math.abs(targetPos.z) > 2200) return true;
+            const pBox = new THREE.Box3(new THREE.Vector3(targetPos.x - 1.5, 0, targetPos.z - 1.5), new THREE.Vector3(targetPos.x + 1.5, 4, targetPos.z + 1.5));
+            for (let i = 0; i < colliders.length; i++) { if (pBox.intersectsBox(colliders[i])) return true; }
+            return false;
+        }
+
+        // --- MAIN ENGINE UPDATES STEP LOOP ---
         function animate() {
             requestAnimationFrame(animate);
+            
             if (isPlaying) {
-                const speed = 0.7; const dx = Math.sin(yaw), dz = Math.cos(yaw);
-                if(keys.w) { kvatia.position.x -= dx * speed; kvatia.position.z -= dz * speed; }
-                if(keys.s) { kvatia.position.x += dx * speed; kvatia.position.z += dz * speed; }
-                if(keys.a) { kvatia.position.x -= dz * speed; kvatia.position.z += dx * speed; }
-                if(keys.d) { kvatia.position.x += dz * speed; kvatia.position.z -= dx * speed; }
-                npcs.forEach(n => { n.lookAt(kvatia.position.x, 0, kvatia.position.z); });
+                // Determine absolute world position coordinate of player regardless of attachment tree nodes
+                const playerWorldPos = new THREE.Vector3();
+                kvatia.getWorldPosition(playerWorldPos);
+
+                // --- 1. HANDLING VEHICLE MANAGEMENT ---
+                if (drivingVehicle) {
+                    const car = drivingVehicle;
+                    const uData = car.userData;
+
+                    // Implement vehicle manipulation processing
+                    if (keys.w) uData.speed = THREE.MathUtils.lerp(uData.speed, 2.2, 0.05);
+                    else if (keys.s) uData.speed = THREE.MathUtils.lerp(uData.speed, -1.2, 0.05);
+                    else uData.speed = THREE.MathUtils.lerp(uData.speed, 0, 0.08);
+
+                    if (keys.a) uData.steering = THREE.MathUtils.lerp(uData.steering, 0.04, 0.1);
+                    else if (keys.d) uData.steering = THREE.MathUtils.lerp(uData.steering, -0.04, 0.1);
+                    else uData.steering = THREE.MathUtils.lerp(uData.steering, 0, 0.15);
+
+                    car.rotation.y += uData.steering * (uData.speed / 2);
+                    car.translateZ(-uData.speed * uData.direction);
+
+                    // Bound city street edge boundaries constraints on controlled drive assets
+                    if (car.position.x > 18) car.position.x = 18;
+                    if (car.position.x < -18) car.position.x = -18;
+
+                    // Wrap infinite driving maps tracking loop
+                    if (car.position.z < -2200) car.position.z = 2200;
+                    if (car.position.z > 2200) car.position.z = -2200;
+
+                } else {
+                    // Standard Walking Movement Simulation
+                    const speed = 0.7; const dx = Math.sin(yaw), dz = Math.cos(yaw);
+                    let nextPos = kvatia.position.clone();
+
+                    if(keys.w) { nextPos.x -= dx * speed; nextPos.z -= dz * speed; }
+                    if(keys.s) { nextPos.x += dx * speed; nextPos.z += dz * speed; }
+                    if(keys.a) { nextPos.x -= dz * speed; nextPos.z += dx * speed; }
+                    if(keys.d) { nextPos.x += dz * speed; nextPos.z -= dx * speed; }
+
+                    if (!checkCollisions(nextPos)) { kvatia.position.copy(nextPos); }
+                }
+
+                // --- 2. TRAFFIC AUTOMATION ROUTINES (AI STOP SENSOR DETECT) ---
+                vehicleProximityTarget = null;
+                vehicles.forEach(car => {
+                    if (car === drivingVehicle) return;
+                    const uData = car.userData;
+
+                    if (uData.isAI) {
+                        // Compute alignment directional heading vector
+                        const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(car.quaternion).normalize().multiplyScalar(uData.direction);
+                        
+                        // Vector tracing between AI vehicle front center and Kvatia position coordinates
+                        const toPlayer = playerWorldPos.clone().sub(car.position);
+                        const distanceToPlayer = toPlayer.length();
+
+                        // Project proximity testing arrays
+                        const dotHeading = toPlayer.normalize().dot(forwardVector);
+
+                        // If player is directly within 40 unit forward radius cone alignment
+                        if (distanceToPlayer < 45 && dotHeading > 0.82 && Math.abs(car.position.x - playerWorldPos.x) < 7.0) {
+                            // Engage immediate emergency braking stop routine
+                            uData.speed = THREE.MathUtils.lerp(uData.speed, 0.0, 0.25);
+                        } else {
+                            // Clear path resume standard velocity line speed curves
+                            uData.speed = THREE.MathUtils.lerp(uData.speed, uData.targetSpeed, 0.03);
+                        }
+
+                        car.translateZ(-uData.speed * uData.direction);
+
+                        // Wrap loop processing mapping on standard street arrays
+                        if (car.position.z < -2200) car.position.z = 2200;
+                        if (car.position.z > 2200) car.position.z = -2200;
+                    }
+
+                    // Scan for interaction entries distances metrics tracking
+                    const distanceToKvatia = car.position.distanceTo(playerWorldPos);
+                    if (!drivingVehicle && distanceToKvatia < 11.0) {
+                        vehicleProximityTarget = car;
+                    }
+                });
+
+                // Update UI interaction layout presentation frames
+                const pUI = document.getElementById('interaction-prompt');
+                const mobCarBtn = document.getElementById('mobile-car-btn');
+                if (drivingVehicle) {
+                    pUI.innerText = "PRESS F TO EXIT VEHICLE"; pUI.style.display = 'block';
+                    if(isMobile) mobCarBtn.style.display = 'flex';
+                } else if (vehicleProximityTarget) {
+                    pUI.innerText = "PRESS F TO ENTER VEHICLE"; pUI.style.display = 'block';
+                    if(isMobile) mobCarBtn.style.display = 'flex';
+                } else {
+                    pUI.style.display = 'none';
+                    if(isMobile) mobCarBtn.style.display = 'none';
+                }
+
+                // --- 3. NPC BEHAVIORAL CYCLES ---
+                npcs.forEach(n => { 
+                    if (!n.isDead) { n.lookAt(playerWorldPos.x, 0, playerWorldPos.z); } 
+                    else {
+                        n.position.add(n.velocity); n.rotation.x += 0.08; n.rotation.z += n.angularVelocity;
+                        n.velocity.multiplyScalar(0.96); n.velocity.y -= 0.03;
+                        if (n.position.y < 0) { n.position.y = 0; n.velocity.set(0,0,0); }
+                    }
+                });
             }
 
+            // Camera calculations tracking logic parameters updates
             const yawDelta = Math.abs(yaw - lastYaw); lastYaw = yaw;
             if (isPlaying && document.getElementById('graphics-select').value === 'ultra') {
                 currentMotionBlurValue = THREE.MathUtils.lerp(currentMotionBlurValue, yawDelta * 8.0, 0.15);
                 motionBlurPass.uniforms["blurAmount"].value = Math.min(1.2, currentMotionBlurValue);
             } else { motionBlurPass.uniforms["blurAmount"].value = 0; }
 
-            kvatia.rotation.y = yaw;
-            const camDist = 22; camera.position.set(kvatia.position.x + Math.sin(yaw) * Math.cos(pitch) * camDist, kvatia.position.y + 12 + Math.sin(pitch) * camDist, kvatia.position.z + Math.cos(yaw) * Math.cos(pitch) * camDist);
-            camera.lookAt(kvatia.position.x, kvatia.position.y + 2.5, kvatia.position.z);
+            if (!drivingVehicle) {
+                kvatia.rotation.y = yaw;
+                const camDist = 22; 
+                camera.position.set(kvatia.position.x + Math.sin(yaw) * Math.cos(pitch) * camDist, kvatia.position.y + 12 + Math.sin(pitch) * camDist, kvatia.position.z + Math.cos(yaw) * Math.cos(pitch) * camDist);
+                camera.lookAt(kvatia.position.x, kvatia.position.y + 2.5, kvatia.position.z);
+            } else {
+                // Vehicle custom exterior camera setup tracking coordinates
+                const carWorldPos = drivingVehicle.position;
+                const camDist = 34;
+                camera.position.set(carWorldPos.x + Math.sin(yaw) * 1.4 * camDist, carWorldPos.y + 16, carWorldPos.z + Math.cos(yaw) * 1.4 * camDist);
+                camera.lookAt(carWorldPos.x, carWorldPos.y + 3.0, carWorldPos.z);
+            }
 
             if (usePostProcessing) { composer.render(); } else { renderer.render(scene, camera); }
         }
         animate();
 
-        // Keyboard bindings for Desktop fallback testing
-        document.addEventListener('keydown', (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; if(e.key.toLowerCase() === 'q') toggleInv(true); });
-        document.addEventListener('keyup', (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; if(e.key.toLowerCase() === 'q') toggleInv(false); });
+        // Keyboard Routing Event Bindings
+        document.addEventListener('keydown', (e) => { 
+            if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true; 
+            if(e.key.toLowerCase() === 'q') toggleInv(true); 
+            if(e.key.toLowerCase() === 'f') triggerVehicleInteraction(); 
+        });
+        document.addEventListener('keyup', (e) => { 
+            if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; 
+            if(e.key.toLowerCase() === 'q') toggleInv(false); 
+        });
         document.addEventListener('mousemove', (e) => { if(!isMobile && document.pointerLockElement) { yaw -= e.movementX * sensitivity; pitch = Math.max(-0.8, Math.min(1.2, pitch + e.movementY * sensitivity)); } });
         document.addEventListener('mousedown', () => { if(isPlaying && !isMobile) performAttack(); });
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); });
